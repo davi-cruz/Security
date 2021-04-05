@@ -3,6 +3,10 @@
 # This script aims to help you configure proxy for Azure Arc for Servers (Linux), 
 # defining proxy configuration to the deamons only instead of globally as the native
 # azcmagent_proxy does.
+# 
+# Usage:
+# azcmagent_proxydaemon.sh <proxyurl>
+# azcmagent_proxydaemon.sh http://server.fqdn:3128
 #
 # Some excerpt for this was extracted from "azcmagent_proxy", which is copyrighted by Microsoft
 # and comes with Azure Arc for Server (Linux) installation
