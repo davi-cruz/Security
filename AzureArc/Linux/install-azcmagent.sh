@@ -1,5 +1,8 @@
-# Install Azure Arc Using Service Principal using Service principal,
-# with the option to install using proxy for arc specific service
+#
+# Install Azure Arc Using Service Principal, specifying proxy configuration
+# in the script
+#
+
 
 # Variables
 tenantID="TBD"
