@@ -1,0 +1,12 @@
+# Install on-prem server
+
+- hosts: general
+  gather_facts: yes
+  vars:
+    mde_channel: prod
+    mde_managed_file: /etc/opt/microsoft/mdatp/managed/mdatp_managed.json
+  tasks:
+    - include: ../roles/mde_setup_prereqs.yml
+    - include: ../roles/mde_setup_onboarding.yml
+    - include: ../roles/mde_setup_add_repo.yml
+    - include: ../roles/mde_setup_install.yml

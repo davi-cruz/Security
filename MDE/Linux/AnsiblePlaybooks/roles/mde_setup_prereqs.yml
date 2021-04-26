@@ -1,0 +1,12 @@
+- name: Install APT unzip
+  apt:
+    name: unzip
+    state: latest
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+- name: Install YUM unzip
+  yum:
+    name: unzip
+    state: latest
+    enablerepo: packages-microsoft-com-prod
+  when: ansible_os_family == "RedHat"

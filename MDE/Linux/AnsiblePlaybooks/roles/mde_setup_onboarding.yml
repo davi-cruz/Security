@@ -1,0 +1,20 @@
+- name: Create MDE directories
+  file:
+    path: /etc/opt/microsoft/mdatp/
+    recurse: true
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+- name: Register mdatp_onboard.json
+  stat:
+    path: /etc/opt/microsoft/mdatp/mdatp_onboard.json
+  register: mdatp_onboard
+- name: Extract WindowsDefenderATPOnboardingPackage.zip into /etc/opt/microsoft/mdatp
+  unarchive:
+    src: ../WindowsDefenderATPOnboardingPackage.zip
+    dest: /etc/opt/microsoft/mdatp
+    mode: 0600
+    owner: root
+    group: root
+  when: not mdatp_onboard.stat.exists

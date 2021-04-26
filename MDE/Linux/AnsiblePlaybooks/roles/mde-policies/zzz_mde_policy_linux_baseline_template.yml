@@ -1,0 +1,171 @@
+###
+### This baseline is based on the recommended configuration provided by Microsoft.
+### Details, as well as updated recommendation is located at 
+### https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/linux-preferences
+###
+### Created using https://github.com/particledecay/ansible-jsonpatch
+### 
+
+- name: Create empty mdatp_managed.json
+  copy:
+    dest: "{{ mde_managed_file }}"
+    content: |
+      {
+        "antivirusEngine":{
+          "allowedThreats":[],
+          "disallowedThreatActions":[],
+          "threatTypeSettings":[],
+          "exclusions":[]
+        },
+        "cloudService":{}
+      }
+
+- name: Antivirus Engine preferences
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      # Enable real time protection:
+      - op: add
+        path: "/antivirusEngine/enableRealTimeProtection"
+        value: true
+      # Disable passive mode
+      - op: add
+        path: "/antivirusEngine/passiveMode"
+        value: false
+      # Exclusion merge policy
+      - op: add
+        path: "/antivirusEngine/exclusionsMergePolicy"
+        value: "admin_only"
+      # Threat type settings merge policy
+      - op: add
+        path: "/antivirusEngine/threatTypeSettingsMergePolicy"
+        value: "admin_only"
+      # Antivirus scan history retention
+      - op: add
+        path: "/antivirusEngine/scanResultsRetentionDays"
+        value: "90"
+      # Maximum number of items in the antivirus scan history
+      - op: add
+        path: "/antivirusEngine/scanHistoryMaximumItems"
+        value: "10000"
+
+- name: Cloud Service Settings
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+    # Enable Cloud Delivered Protection
+      - op: add
+        path: "/cloudService/enabled"
+        value: true
+    # Diagnostic collection level
+      - op: add
+        path: "/cloudService/diagnosticLevel"
+        value: optional
+    # Automatic sample submissions
+      - op: add
+        path: "/cloudService/automaticSampleSubmissionConsent"
+        value: safe
+    # Automatic security intelligence updates
+      - op: add
+        path: "/cloudService/automaticDefinitionUpdateEnabled"
+        value: true
+
+
+## Exclusions
+
+- name: Antivirus Exclusions - Folders
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      - op: add
+        path: "/antivirusEngine/exclusions/-"
+        value:
+          $type: "excludedPath"
+          isDirectory: true
+          path: "{{ item }}"  
+  with_items:
+    - "/home"
+
+- name: Antivirus Exclusions - Files
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      - op: add
+        path: "/antivirusEngine/exclusions/-"
+        value:
+          $type: "excludedPath"
+          isDirectory: false
+          path: "{{ item }}"  
+  with_items:
+    - "/var/log/system.log"
+
+- name: Antivirus Exclusions - Extensions
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      - op: add
+        path: "/antivirusEngine/exclusions/-"
+        value:
+          $type: "excludedFileExtension"
+          extension: "{{ item }}"  
+  with_items:
+    - "pdf"
+
+- name: Antivirus Exclusions - Processes
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      - op: add
+        path: "/antivirusEngine/exclusions/-"
+        value:
+          $type: "excludedFileName"
+          name: "{{ item }}"  
+  with_items:
+    - "cat"
+
+- name: Allowed Threats
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      - op: add
+        path: "/antivirusEngine/allowedThreats/-"
+        value: "{{ item }}"
+  with_items:
+    - "EICAR-Test-File (not a virus)"
+
+- name: Disallowed threat actions
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      - op: add
+        path: "/antivirusEngine/disallowedThreatActions/-"
+        value: "{{ item }}"
+  with_items:
+    - "allow"
+    - "restore"
+
+- name: Threat type settings
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+    # PUA
+      - op: add
+        path: "/antivirusEngine/threatTypeSettings/-"
+        value: 
+          key: "potentially_unwanted_application"
+          value: "block"
+    # Archive Bomb
+      - op: add
+        path: "/antivirusEngine/threatTypeSettings/-"
+        value: 
+          key: "archive_bomb"
+          value: "audit"

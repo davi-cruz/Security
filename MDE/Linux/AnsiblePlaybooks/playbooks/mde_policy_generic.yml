@@ -1,0 +1,10 @@
+- hosts: mdeservers
+  gather_facts: no
+  vars:
+    mde_managed_file: /etc/opt/microsoft/mdatp/managed/mdatp_managed.json
+  tasks:
+    # Add policies to be applied, lower priority first, so they'll be overwritten
+    # in case another policy also defines the same settings. 
+    # The resultant policy should be the expected configuration.
+    - include: ../roles/mde-policies/00_baseline.yml
+    - include: ../roles/mde-policies/01_db_mysql.yml

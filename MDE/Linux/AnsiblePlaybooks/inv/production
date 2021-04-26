@@ -1,0 +1,6 @@
+[general]
+azvmlx01.davicruz.azure
+azvmlx02.davicruz.azure
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3

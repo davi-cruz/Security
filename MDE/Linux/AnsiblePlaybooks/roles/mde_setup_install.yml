@@ -1,0 +1,12 @@
+- name: Install MDE APT package
+  apt:
+    name: mdatp
+    state: latest
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+- name: Install MDE YUM package
+  yum:
+    name: mdatp
+    state: latest
+    enablerepo: packages-microsoft-com-prod
+  when: ansible_os_family == "RedHat"

@@ -1,0 +1,51 @@
+###
+### This baseline is based on the recommended configuration provided by Microsoft.
+### Details, as well as updated recommendation is located at 
+### https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/linux-preferences
+###
+### Created using https://github.com/particledecay/ansible-jsonpatch
+### 
+
+
+## Exclusions
+
+- name: Antivirus Exclusions - Folders
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      - op: add
+        path: "/antivirusEngine/exclusions/-"
+        value:
+          $type: "excludedPath"
+          isDirectory: true
+          path: "{{ item }}"  
+  with_items:
+    - "/opt/myapp/mysql"
+
+- name: Antivirus Exclusions - Files
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      - op: add
+        path: "/antivirusEngine/exclusions/-"
+        value:
+          $type: "excludedPath"
+          isDirectory: false
+          path: "{{ item }}"  
+  with_items:
+    - "/opt/mysql/*.sql"
+
+- name: Antivirus Exclusions - Processes
+  json_patch:
+    src: "{{ mde_managed_file }}"
+    pretty: yes
+    operations:
+      - op: add
+        path: "/antivirusEngine/exclusions/-"
+        value:
+          $type: "excludedFileName"
+          name: "{{ item }}"  
+  with_items:
+    - "mysqld"
