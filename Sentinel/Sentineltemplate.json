@@ -2,32 +2,31 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "solutionName": {
-            "defaultValue": "SecurityInsights(<wksname>)",
-            "type": "String"
-        },
         "workspaceResourceID": {
             "type": "String", 
             "defaultValue":"/subscriptions/<subid>/resourcegroups/<rg>/providers/microsoft.operationalinsights/workspaces/<wksname>"
         },
         "strAmbiente": { "type": "String" },
         "strServico": { "type": "String" },
-        "strReponsavel": { "type": "String" }
+        "strResponsavel": { "type": "String" }
     },
-    "variables": {},
+    "variables": {
+        "workspaceName":"[last(split(parameters('workspaceResourceID'),'/'))]",
+        "solutionName": "[concat('SecurityInsights(',variables('workspaceName'),')')]"
+    },
     "resources": [
         {
             "type": "Microsoft.OperationsManagement/solutions",
             "apiVersion": "2015-11-01-preview",
-            "name": "[parameters('solutionName')]",
+            "name": "[variables('solutionName')]",
             "location": "[resourceGroup().location]",
             "tags": {
                 "Ambiente": "[parameters('strAmbiente')]",
                 "Servico": "[parameters('strServico')]",
-                "Reponsavel": "[parameters('strReponsavel')]"
+                "Responsavel": "[parameters('strResponsavel')]"
             },
             "plan": {
-                "name": "SecurityInsights(Seguranca-log)",
+                "name": "[variables('solutionName')]",
                 "promotionCode": "",
                 "product": "OMSGallery/SecurityInsights",
                 "publisher": "Microsoft"
