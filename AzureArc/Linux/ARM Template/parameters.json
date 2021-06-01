@@ -1,0 +1,15 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmName": {
+            "value": "vmlx01"
+        },
+        "apiVersionByEnv": {
+            "value": "2015-06-01-preview"
+        },
+        "logAnalytics": {
+            "value": "/subscriptions/<subscriptionid>/resourcegroups/<resourcegroup>/providers/microsoft.operationalinsights/workspaces/<workspacename>"
+        }
+    }
+}

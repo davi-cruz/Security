@@ -1,0 +1,50 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmName": {
+            "type": "String"
+        },
+        "logAnalytics": {
+            "type": "String"
+        },
+        "apiVersionByEnv": {
+            "type": "String"
+        }
+    },
+    "variables": {
+        "vmExtensionName": "MMAExtension",
+        "vmExtensionPublisher": "Microsoft.EnterpriseCloud.Monitoring",
+        "vmExtensionType": "OmsAgentForLinux"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.HybridCompute/machines/extensions",
+            "apiVersion": "2019-12-12",
+            "name": "[concat(parameters('vmName'), '/', variables('vmExtensionName'))]",
+            "location": "[resourcegroup().location]",
+            "properties": {
+                "publisher": "[variables('vmExtensionPublisher')]",
+                "type": "[variables('vmExtensionType')]",
+                "settings": {
+                    "workspaceId": "[reference(parameters('logAnalytics'), '2015-03-20').customerId]",
+                    "stopOnMultipleConnections": "false"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(parameters('logAnalytics'), '2015-03-20').primarySharedKey]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.HybridCompute/machines/providers/serverVulnerabilityAssessments",
+            "apiVersion": "[parameters('apiVersionByEnv')]",
+            "name": "[concat(parameters('vmName'), '/Microsoft.Security/default')]"
+        }
+    ],
+    "outputs": {
+        "policy": {
+            "type": "String",
+            "value": "[concat('Enabled extension for VM', ': ', parameters('vmName'))]"
+        }
+    }
+}
