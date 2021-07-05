@@ -1,0 +1,61 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "defaultValue": "log-temp",
+            "type": "string"
+        },
+        "workspaceResourceId": {
+            "defaultValue": "/subscriptions/<>/resourceGroups/rgname/providers/Microsoft.OperationalInsights/workspaces/log-temp",
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[concat('Security(', parameters('workspaceName'), ')')]",
+            "location": "West US 2",
+            "tags": {
+                "Responsável": "Fulano de Tal",
+                "Serviço": "SECURITY"
+
+            },
+            "plan": {
+                "name": "[concat('Security(', parameters('workspaceName'), ')')]",
+                "promotionCode": "",
+                "product": "OMSGallery/Security",
+                "publisher": "Microsoft"
+            },
+            "properties": {
+                "workspaceResourceId": "[parameters('workspaceResourceId')]",
+                "containedResources": [
+                    "[concat(parameters('workspaceResourceId'), '/views/', 'Security(', parameters('workspaceName'),')')]"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[concat('SecurityCenterFree(', parameters('workspaceName'), ')')]",
+            "location": "West US 2",
+            "tags": {
+                "Responsável": "Fulano de Tal",
+                "Serviço": "SECURITY"
+
+            },
+            "plan": {
+                "name": "[concat('SecurityCenterFree(', parameters('workspaceName'), ')')]",
+                "promotionCode": "",
+                "product": "OMSGallery/SecurityCenterFree",
+                "publisher": "Microsoft"
+            },
+            "properties": {
+                "workspaceResourceId": "[parameters('workspaceResourceId')]",
+                "containedResources": []
+            }
+        }
+    ]
+}
