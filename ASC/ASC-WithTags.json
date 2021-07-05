@@ -9,6 +9,14 @@
         "workspaceResourceId": {
             "defaultValue": "/subscriptions/<>/resourceGroups/rgname/providers/Microsoft.OperationalInsights/workspaces/log-temp",
             "type": "string"
+        }, 
+        "strResponsavel":{
+            "defaultValue" : "Fulano de Tal",
+            "type": "string"
+        }, 
+        "strServico": {
+            "defaultValue" : "SECURITY",
+            "type": "string"
         }
     },
     "variables": {},
@@ -19,8 +27,8 @@
             "name": "[concat('Security(', parameters('workspaceName'), ')')]",
             "location": "West US 2",
             "tags": {
-                "Responsável": "Fulano de Tal",
-                "Serviço": "SECURITY"
+                "Responsável": "[parameters('strResponsavel')]",
+                "Serviço": "[parameters('strServico')]"
 
             },
             "plan": {
@@ -32,7 +40,7 @@
             "properties": {
                 "workspaceResourceId": "[parameters('workspaceResourceId')]",
                 "containedResources": [
-                    "[concat(parameters('workspaceResourceId'), '/views/', 'Security(', parameters('workspaceName'),')')]"
+                    "[concat(parameters('workspaceResourceId'), concat('/views/', 'Security(', parameters('workspaceName'),')'))]"
                 ]
             }
         },
@@ -42,8 +50,8 @@
             "name": "[concat('SecurityCenterFree(', parameters('workspaceName'), ')')]",
             "location": "West US 2",
             "tags": {
-                "Responsável": "Fulano de Tal",
-                "Serviço": "SECURITY"
+                "Responsável": "[parameters('strResponsavel')]",
+                "Serviço": "[parameters('strServico')]"
 
             },
             "plan": {
