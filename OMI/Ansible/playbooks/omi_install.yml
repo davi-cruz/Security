@@ -1,0 +1,9 @@
+# Install on-prem server
+
+- hosts: general
+  gather_facts: yes
+  vars:
+    msft_channel: prod
+  tasks:
+    - include: ../roles/msft_add_repo.yml
+    - include: ../roles/omi_install.yml

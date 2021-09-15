@@ -7,18 +7,18 @@
 
 - name: Add Microsoft APT repository for MDE
   apt_repository:
-    repo: deb [arch=amd64] https://packages.microsoft.com/{{ ansible_lsb.id|lower }}/{{ ansible_lsb.release }}/{{ mde_channel }} {{ ansible_lsb.codename }} main
+    repo: deb [arch=amd64] https://packages.microsoft.com/{{ ansible_lsb.id|lower }}/{{ ansible_lsb.release }}/{{ msft_channel }} {{ ansible_lsb.codename }} main
     update_cache: yes
     state: present
-    filename: microsoft-{{ mde_channel }}.list
+    filename: microsoft-{{ msft_channel }}.list
   when: ansible_os_family == "Debian"
 
 - name: Add Microsoft YUM repository for MDE
   yum_repository:
-    name: packages-microsoft-com-{{ mde_channel }}
+    name: packages-microsoft-com-{{ msft_channel }}
     description: Microsoft Defender for Endpoint
-    file: microsoft-{{ mde_channel }}
-    baseurl: https://packages.microsoft.com/rhel/8/{{ mde_channel }}/
+    file: microsoft-{{ msft_channel }}
+    baseurl: https://packages.microsoft.com/rhel/8/{{ msft_channel }}/
     gpgcheck: yes
     enabled: Yes
   when: ansible_os_family == "RedHat"
