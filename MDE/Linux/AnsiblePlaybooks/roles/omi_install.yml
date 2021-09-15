@@ -1,0 +1,12 @@
+- name: Install OMI APT package
+  apt:
+    name: omi
+    state: latest
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+- name: Install OMI YUM package
+  yum:
+    name: omi
+    state: latest
+    enablerepo: packages-microsoft-com-prod
+  when: ansible_os_family == "RedHat"
