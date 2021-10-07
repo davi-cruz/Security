@@ -28,7 +28,7 @@
         },
         "subnetResourceId": {
             "type": "string",
-            "defaultValue": "/subscriptions/2b6e5fa6-f40a-4e6c-980a-1f0f2ae6d1eb/resourceGroups/rg-dc-shared-vnet/providers/Microsoft.Network/virtualNetworks/hub-vnet/subnets/backend-sn"
+            "defaultValue": "/subscriptions/<subid>/resourceGroups/<rgname>/providers/Microsoft.Network/virtualNetworks/<vnetname>/subnets/<subnetname>"
         }
     },
     "variables": {
