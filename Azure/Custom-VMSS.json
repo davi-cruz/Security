@@ -3,7 +3,8 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "Base_Name": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "davicruz-syslog-lx-prd"
         },
         "Autoscale_Min": {
             "type": "int",
@@ -18,19 +19,20 @@
             "defaultValue": "syslogcef"
         },
         "AdminPassword": {
-            "type": "securestring"
+            "type": "securestring",
+            "defaultValue": "DefaultPassword01"
         },
         "workspaceId": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "<>"
         },
         "workspaceKey": {
-            "type": "string"
+            "type": "securestring",
+            "defaultValue": "<>"
         },
-        "VnetName": {
-            "type": "string"
-        },
-        "SubnetName": {
-            "type": "string"
+        "subnetResourceId": {
+            "type": "string",
+            "defaultValue": "/subscriptions/2b6e5fa6-f40a-4e6c-980a-1f0f2ae6d1eb/resourceGroups/rg-dc-shared-vnet/providers/Microsoft.Network/virtualNetworks/hub-vnet/subnets/backend-sn"
         }
     },
     "variables": {
@@ -69,11 +71,10 @@
                     {
                         "name": "LoadBalancerFrontEnd",
                         "properties": {
-                            "privateIPAddress": null,
                             "privateIPAddressVersion": "IPv4",
                             "privateIPAllocationMethod": "Dynamic",
                             "subnet": {
-                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('VnetName')), '/subnets/', parameters('SubnetName'))]"
+                                "id": "[parameters('subnetResourceId')]"
                             }
                         }
                     }
@@ -182,7 +183,10 @@
             "properties": {
                 "singlePlacementGroup": true,
                 "upgradePolicy": {
-                    "mode": "Manual"
+                    "mode": "Manual",
+                    "automaticOSUpgradePolicy": {
+                        "enableAutomaticOSUpgrade": true
+                    }
                 },
                 "virtualMachineProfile": {
                     "osProfile": {
@@ -227,7 +231,7 @@
                     "networkProfile": {
                         "networkInterfaceConfigurations": [
                             {
-                                "name": "[concat(parameters('Base_Name'), '-nic')]",
+                                "name": "[concat('nic-', parameters('Base_Name'))]",
                                 "properties": {
                                     "primary": true,
                                     "enableAcceleratedNetworking": false,
@@ -238,10 +242,10 @@
                                     "enableIPForwarding": false,
                                     "ipConfigurations": [
                                         {
-                                            "name": "[concat(parameters('Base_Name'), '-ipConfig')]",
+                                            "name": "[concat('ipconfig-', parameters('Base_Name'))]",
                                             "properties": {
                                                 "subnet": {
-                                                    "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('VnetName')), '/subnets/', parameters('SubnetName'))]"
+                                                    "id": "[parameters('subnetResourceId')]"
                                                 },
                                                 "privateIPAddressVersion": "IPv4",
                                                 "loadBalancerBackendAddressPools": [
@@ -373,7 +377,7 @@
                     }
                 ],
                 "enabled": true,
-                "name": "[concat(parameters('Base_Name'), '-autoscale')]",
+                "name": "[concat('autoscale-', parameters('Base_Name'))]",
                 "targetResourceUri": "[resourceId('Microsoft.Compute/virtualMachineScaleSets', variables('vmss_Name'))]"
             }
         }
