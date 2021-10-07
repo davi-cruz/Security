@@ -3,8 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "Base_Name": {
-            "type": "string",
-            "defaultValue": "davicruz-syslog-lx-prd"
+            "type": "string"
         },
         "Autoscale_Min": {
             "type": "int",
@@ -19,16 +18,13 @@
             "defaultValue": "syslogcef"
         },
         "AdminPassword": {
-            "type": "securestring",
-            "defaultValue": "DefaultPassword01"
+            "type": "securestring"
         },
         "workspaceId": {
-            "type": "string",
-            "defaultValue": "<>"
+            "type": "string"
         },
         "workspaceKey": {
-            "type": "securestring",
-            "defaultValue": "<>"
+            "type": "string"
         },
         "subnetResourceId": {
             "type": "string",
@@ -71,11 +67,11 @@
                     {
                         "name": "LoadBalancerFrontEnd",
                         "properties": {
-                            "privateIPAddressVersion": "IPv4",
                             "privateIPAllocationMethod": "Dynamic",
                             "subnet": {
                                 "id": "[parameters('subnetResourceId')]"
-                            }
+                            },
+                            "privateIPAddressVersion": "IPv4"
                         }
                     }
                 ],
@@ -183,10 +179,7 @@
             "properties": {
                 "singlePlacementGroup": true,
                 "upgradePolicy": {
-                    "mode": "Manual",
-                    "automaticOSUpgradePolicy": {
-                        "enableAutomaticOSUpgrade": true
-                    }
+                    "mode": "Manual"
                 },
                 "virtualMachineProfile": {
                     "osProfile": {
