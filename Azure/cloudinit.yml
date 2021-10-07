@@ -16,7 +16,7 @@ mounts:
     "defaults,noexec,nofail",
     ]
 write_files:
-  - path: /etc/rsyslog.d/60-cef.conf.bak
+  - path: /etc/rsyslog.d/60-collector.conf
     owner: root:root
     permissions: '0644'
     content: |
@@ -62,10 +62,8 @@ runcmd:
   - sudo wget https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/DataConnectors/CEF/TimeGenerated.py && echo Yes | sudo python TimeGenerated.py <workspaceid>
   - sudo sed -i -e 's@input(type="imudp" port="514")@input(type="imudp" port="514" ruleset="forwarddata")@g' /etc/rsyslog.conf
   - sudo sed -i -e 's@input(type="imtcp" port="514")@input(type="imtcp" port="514" ruleset="forwarddata")@g' /etc/rsyslog.conf
-  - sudo rm /etc/rsyslog.d/security-config-omsagent.conf
-  - sudo mv /etc/rsyslog.d/60-cef.conf.bak /etc/rsyslog.d/60-cef.conf
-  - sudo sed -i -e 's@/var/opt/microsoft/omsagent/<workspaceid>/state@/opt/syslog-data@g' /etc/opt/microsoft/omsagent/<workspaceid>/conf/omsagent.conf
   - sudo chown omsagent:omiusers /opt/syslog-data
+  - sudo sed -i -e 's@/var/opt/microsoft/omsagent/<workspaceid>/state@/opt/syslog-data@g' /etc/opt/microsoft/omsagent/<workspaceid>/conf/omsagent.conf
   - sudo systemctl restart rsyslog
   - sudo /opt/microsoft/omsagent/bin/service_control stop <workspaceid>
   - sudo /opt/microsoft/omsagent/bin/service_control start <workspaceid>
