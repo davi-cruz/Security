@@ -1,0 +1,71 @@
+#cloud-config
+disk_setup:
+  /dev/disk/azure/scsi1/lun0:
+    table_type: gpt
+    layout: true
+    overwrite: false
+fs_setup:
+  - device: /dev/disk/azure/scsi1/lun0
+    partition: 1
+    filesystem: ext4
+mounts:
+  - [
+    "/dev/disk/azure/scsi1/lun0-part1",
+    "/opt/syslog-data",
+    auto,
+    "defaults,noexec,nofail",
+    ]
+write_files:
+  - path: /etc/rsyslog.d/60-cef.conf.bak
+    owner: root:root
+    permissions: '0644'
+    content: |
+      ruleset(name="forwarddata"){
+        # Filtrar eventos indesejados
+        #if prifilt("auth,authpriv.*") then {
+        #  stop
+        #}
+
+        # Envia eventos CEF para o Workspace
+        if ($rawmsg contains "CEF:") or ($rawmsg contains "ASA-") then {
+          action(type="omfwd"
+            target="127.0.0.1"
+            port="25226"
+            protocol="tcp"
+            queue.type="fixedArray"
+            queue.dequeueBatchSize="128"
+            queue.workerThreads="5"
+            queue.spoolDirectory="/var/opt/microsoft/linuxmonagent"
+            queue.filename="omsagentqueue"
+            queue.maxdiskspace="5g"
+            queue.size="50000"
+            queue.highwatermark="30000"
+            queue.lowwatermark="25000"
+            queue.saveonshutdown="on"
+            action.resumeretrycount="-1"
+            action.resumeinterval = "3"
+          )
+          stop
+        }
+
+        # Envia eventos Syslog para o Workspace
+        #local4.* @127.0.0.1:25224
+      }
+runcmd:
+  - while ( ! (find /var/log/azure/Microsoft.EnterpriseCloud.Monitoring.OmsAgentForLinux/extension.log | xargs grep "Enable,success,0,Enable succeeded")); do sleep 5; done
+  - sudo apt-get update
+  - sudo echo \"root         soft    nofile         65536\" >> /etc/security/limits.conf
+  - sudo echo \"root         hard    nofile         65536\" >> /etc/security/limits.conf
+  - sudo echo \"*         soft    nofile         65536\" >> /etc/security/limits.conf
+  - sudo echo \"*         hard    nofile         65536\" >> /etc/security/limits.conf
+  - sudo wget https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/DataConnectors/CEF/cef_installer.py&&sudo python cef_installer.py <workspaceid> <workspacekey>
+  - sudo wget https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/DataConnectors/CEF/TimeGenerated.py && echo Yes | sudo python TimeGenerated.py <workspaceid>
+  - sudo sed -i -e 's@input(type="imudp" port="514")@input(type="imudp" port="514" ruleset="forwarddata")@g' /etc/rsyslog.conf
+  - sudo sed -i -e 's@input(type="imtcp" port="514")@input(type="imtcp" port="514" ruleset="forwarddata")@g' /etc/rsyslog.conf
+  - sudo rm /etc/rsyslog.d/security-config-omsagent.conf
+  - sudo mv /etc/rsyslog.d/60-cef.conf.bak /etc/rsyslog.d/60-cef.conf
+  - sudo sed -i -e 's@/var/opt/microsoft/omsagent/<workspaceid>/state@/opt/syslog-data@g' /etc/opt/microsoft/omsagent/<workspaceid>/conf/omsagent.conf
+  - sudo chown omsagent:omiusers /opt/syslog-data
+  - sudo systemctl restart rsyslog
+  - sudo /opt/microsoft/omsagent/bin/service_control stop <workspaceid>
+  - sudo /opt/microsoft/omsagent/bin/service_control start <workspaceid>
