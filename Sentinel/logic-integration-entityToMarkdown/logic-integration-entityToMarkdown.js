@@ -1,6 +1,5 @@
 // You MUST minify this script version to add to Logic App Inline Code action
 // Commented snippet to test this from a local entity sample file
-// $ node Integration-EntityToMarkdown.js > Test.md
 // Test
 // var fs = require('fs');
 // var path = require('path');
@@ -49,8 +48,8 @@ function tableMD() {
             tableRow = [];
             keys.forEach(key => {
                 if (entity.properties[key]) {
-                    if (key == 'additionalData' || key == "location") {
-                        // Stringfy dynamic fields
+                    if (typeof entity.properties[key] == 'object') {
+                        // Stringfy objects fields
                         tableRow.push(JSON.stringify(entity.properties[key]));
                     }
                     else {
