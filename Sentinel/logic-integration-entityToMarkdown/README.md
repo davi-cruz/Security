@@ -19,6 +19,7 @@ This script summarizes the entity types available in Incident and, for each, cre
 - **Use in Logic App**: Paste the minified content inside the code block in your Logic App and enjoy :smile:
 
   - **IMPORTANT**: Make sure you use a minified version, once Logic Apps have a limit of 1024 character length for this code block (see [official documentation](https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-limits-and-config?tabs=azure-portal)).
+  - While minifying the script, it might complain that you're using a return expression without a function. Logic App might enclosure this code to its own fuction so depending on your minifier tool, you can remove the return expression and add it back when adding the content to the Action.
 
 ## Sample output
 
