@@ -1,4 +1,5 @@
-# http://live.sysinternals.com/
+# This script is no longer required once Sysinternals can now be installed from MSStore and winget on Windows 11 
+# Feel free to use anyway :)
 
 $uri = 'https://live.sysinternals.com'
 $global:currentDirectory = Split-Path -Path $MyInvocation.MyCommand.path -parent
