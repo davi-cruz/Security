@@ -1,5 +1,6 @@
 // You MUST minify this script version to add to Logic App Inline Code action
 // Commented snippet to test this from a local entity sample file
+// $ node Integration-EntityToMarkdown.js > Test.md
 // Test
 // var fs = require('fs');
 // var path = require('path');
@@ -24,7 +25,7 @@ setKind.forEach(strKind => {
     result.push("");
     scope = objJSON.filter(entity => entity.kind == strKind);
 
-    // List all key values forspecified entity kind
+    // List all key values for specified entity kind
     keys = [];
     scope.forEach(entity => {
         Object.keys(entity.properties).forEach(key => {
@@ -35,7 +36,8 @@ setKind.forEach(strKind => {
     // Builds markdown header
     tableHeader = [];
     tableDelimiter = [];
-    new Set(keys).forEach(key => {
+    arrKeys = new Set(keys);
+    arrKeys.forEach(key => {
         tableHeader.push(key);
         tableDelimiter.push("-");
     });
@@ -45,10 +47,10 @@ setKind.forEach(strKind => {
     // Populate table with available data
     scope.forEach(entity => {
         tableRow = [];
-        keys.forEach(key => {
+        arrKeys.forEach(key => {
             if (entity.properties[key]) {
                 if (typeof entity.properties[key] == 'object') {
-                    // Stringfy objects fields
+                    // Stringfy object fields
                     tableRow.push(JSON.stringify(entity.properties[key]));
                 }
                 else {
@@ -68,5 +70,5 @@ setKind.forEach(strKind => {
 output = result.join("\n");
 
 // Test
-//console.log(output);
+// console.log(output);
 return output;
