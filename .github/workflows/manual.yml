@@ -1,0 +1,26 @@
+name: Azure Container Scan - Manual trigger
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Azure Container Scan'
+        default: ''
+        required: false
+
+jobs:
+  # This workflow contains a single job called "greet"
+  scanContainers:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Runs a single command using the runners shell
+    - name: Container image scan Squid
+      uses: Azure/container-scan@v0.1
+      with:
+        image-name: sameersbn/squid:latest
+    - name: Container image scan VyControl
+      uses: Azure/container-scan@v0.1
+      with:
+        image-name: robertoberto/vycontrol:latest
