@@ -15,11 +15,11 @@ jobs:
       - name: Container image scan Squid
         id: container-scan
         continue-on-error: true
-        uses: Azure/container-scan@latest
+        uses: Azure/container-scan@v0.1
         with:
           image-name: sameersbn/squid:latest
       - name: Post logs to appinsights
-        uses: Azure/publish-security-assessments@latest
+        uses: Azure/publish-security-assessments@v0
         with:
           scan-results-path: ${{ steps.container-scan.outputs.scan-report-path }}
           connection-string: ${{ secrets.AZ_APPINSIGHTS_CONNECTION_STRING }}
@@ -29,11 +29,11 @@ jobs:
     steps:
       - name: Container image scan VyControl
         id: container-scan2
-        uses: Azure/container-scan@latest
+        uses: Azure/container-scan@v0.1
         with:
           image-name: robertoberto/vycontrol:latest
       - name: Post logs to appinsights
-        uses: Azure/publish-security-assessments@latest
+        uses: Azure/publish-security-assessments@v0
         with:
           scan-results-path: ${{ steps.container-scan.outputs.scan-report-path }}
           connection-string: ${{ secrets.AZ_APPINSIGHTS_CONNECTION_STRING }}
