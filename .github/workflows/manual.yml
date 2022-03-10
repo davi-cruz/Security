@@ -4,25 +4,37 @@ on:
   workflow_dispatch:
     inputs:
       name:
-        description: 'Azure Container Scan'
-        default: ''
+        description: "Azure Container Scan"
+        default: ""
         required: false
 
 jobs:
-  # This workflow contains a single job called "greet"
-  scanContainers:
-    # The type of runner that the job will run on
+  scanSquid:
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Runs a single command using the runners shell
-    - name: Container image scan Squid
-      uses: Azure/container-scan@v0.1
-      continue-on-error: true
-      with:
-        image-name: sameersbn/squid:latest
-    - name: Container image scan VyControl
-      uses: Azure/container-scan@v0.1
-      continue-on-error: true
-      with:
-        image-name: robertoberto/vycontrol:latest
+      - name: Container image scan Squid
+        id: container-scan
+        continue-on-error: true
+        uses: Azure/container-scan@latest
+        with:
+          image-name: sameersbn/squid:latest
+      - name: Post logs to appinsights
+        uses: Azure/publish-security-assessments@latest
+        with:
+          scan-results-path: ${{ steps.container-scan.outputs.scan-report-path }}
+          connection-string: ${{ secrets.AZ_APPINSIGHTS_CONNECTION_STRING }}
+          subscription-token: ${{ secrets.AZ_SUBSCRIPTION_TOKEN }}
+  scanVyControl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Container image scan VyControl
+        id: container-scan2
+        uses: Azure/container-scan@latest
+        with:
+          image-name: robertoberto/vycontrol:latest
+      - name: Post logs to appinsights
+        uses: Azure/publish-security-assessments@latest
+        with:
+          scan-results-path: ${{ steps.container-scan.outputs.scan-report-path }}
+          connection-string: ${{ secrets.AZ_APPINSIGHTS_CONNECTION_STRING }}
+          subscription-token: ${{ secrets.AZ_SUBSCRIPTION_TOKEN }}
