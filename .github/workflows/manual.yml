@@ -1,15 +1,15 @@
-name: Azure Container Scan - Manual trigger
+name: Azure Container Scan
 
 on:
   workflow_dispatch:
     inputs:
-      name:
-        description: "Azure Container Scan"
-        default: ""
-        required: false
+      imageName:
+        description: "Container image to Scan"
+        default: "<url>/<imageName>:<version>"
+        required: true
 
 jobs:
-  scanSquid:
+  scanContainerImage:
     runs-on: ubuntu-latest
     steps:
       - name: Container image scan Squid
@@ -17,21 +17,7 @@ jobs:
         continue-on-error: true
         uses: Azure/container-scan@v0.1
         with:
-          image-name: sameersbn/squid:latest
-      - name: Post logs to appinsights
-        uses: Azure/publish-security-assessments@v0
-        with:
-          scan-results-path: ${{ steps.container-scan.outputs.scan-report-path }}
-          connection-string: ${{ secrets.AZ_APPINSIGHTS_CONNECTION_STRING }}
-          subscription-token: ${{ secrets.AZ_SUBSCRIPTION_TOKEN }}
-  scanVyControl:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Container image scan VyControl
-        id: container-scan2
-        uses: Azure/container-scan@v0.1
-        with:
-          image-name: robertoberto/vycontrol:latest
+          image-name: ${{ github.event.inputs.imageName }}
       - name: Post logs to appinsights
         uses: Azure/publish-security-assessments@v0
         with:
