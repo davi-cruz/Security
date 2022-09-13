@@ -1,0 +1,14 @@
+[Unit]
+Description=MDCA CEF Connector
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=forking
+ExecStart=/opt/mdca-cef/mdca-cef-connector.sh start
+ExecStop=/opt/mdca-cef/mdca-cef-connector.sh stop
+PIDFile=/opt/mdca-cef/mdca-cef-connector.pid
+User=DACRUZ
+
+[Install]
+WantedBy=multi-user.target

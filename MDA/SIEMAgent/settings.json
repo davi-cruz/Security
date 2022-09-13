@@ -1,0 +1,6 @@
+{
+    "jarName": "mcas-siemagent-0.111.126-signed.jar",
+    "token": "S05ZAAAAAAAAAAA...",
+    "logDir": "/var/log/mdca",
+    "proxy": "server:port"
+}

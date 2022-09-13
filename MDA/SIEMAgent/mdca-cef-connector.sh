@@ -11,9 +11,9 @@ CEFConnector_start() {
 }
 
 CEFConnector_stop() {
-    [ -z "$PID" ] && { echo "MCAS CEF Connector is not running"; exit 1; }
-    echo "Stopping MCAS CEF Connector, pid: $PID..."
-    kill -9 $PID 1>/dev/null 2>/dev/null && { echo "MCAS CEF Connector killed"; } || { echo "Could not kill MCAS CEF Connector"; }
+    [ -z "$PID" ] && { echo "MDCA CEF Connector is not running"; exit 1; }
+    echo "Stopping MDCA CEF Connector, pid: $PID..."
+    kill -9 $PID 1>/dev/null 2>/dev/null && { echo "MDCA CEF Connector killed"; } || { echo "Could not kill MDCA CEF Connector"; }
     rm $PIDFile
 }
 
@@ -24,14 +24,16 @@ CEFConnector_pid() {
     return 0;
 }
 
-# Load Script variables
+# Script Configuration
+SCRIPT_DIR="/opt/mdca-cef"
+
+# Script Variables
 SCRIPT_NAME=`basename $0`
-SCRIPT_DIR="/opt/MCASCEFConnector"
 JAR_NAME=$(jq -r '.jarName' $SCRIPT_DIR/settings.json)
 TOKEN=$(jq -r '.token' $SCRIPT_DIR/settings.json)
 LOG_DIR=$(jq -r '.logDir' $SCRIPT_DIR/settings.json)
 PROXY=$(jq -r '.proxy' $SCRIPT_DIR/settings.json)
-PIDFile=$(echo $0 | sed 's/\.sh/\.pid/g')
+PIDFile="$SCRIPT_DIR/mdca-cef-connector.pid"
 
 # Creates log directory if not exist 
 mkdir -p $LOG_DIR
@@ -39,12 +41,12 @@ mkdir -p $LOG_DIR
 case "$1" in
    start)
         CEFConnector_pid
-        [ -z "$PID" ] || { echo "MCAS CEF Connector is already running, pid: $PID"; exit 1; }
+        [ -z "$PID" ] || { echo "MDCA CEF Connector is already running, pid: $PID"; exit 1; }
         CEFConnector_start
         sleep 1
         CEFConnector_pid
-        [ -z "$PID" ] && { echo "MCAS CEF Connector is not running"; exit 1; }
-        echo "MCAS CEF Connector is running, pid: $PID"
+        [ -z "$PID" ] && { echo "MDCA CEF Connector is not running"; exit 1; }
+        echo "MDCA CEF Connector is running, pid: $PID"
         exit $?
     ;;
 
@@ -56,8 +58,8 @@ case "$1" in
     
     status)
         CEFConnector_pid
-        [ -z "$PID" ] && { echo "MCAS CEF Connector is not running"; exit 1; }
-        echo "MCAS CEF Connector is running, pid: $PID"
+        [ -z "$PID" ] && { echo "MDCA CEF Connector is not running"; exit 1; }
+        echo "MDCA CEF Connector is running, pid: $PID"
     ;;
     
     *)
