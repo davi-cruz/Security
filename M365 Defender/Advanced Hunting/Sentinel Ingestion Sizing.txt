@@ -9,3 +9,10 @@ union withsource = TableName *
     DailyAvgInMB = format_bytes(DailyAvg, 2, "MB")
 | sort by TotalBytes desc
 | project-away TotalBytes, DailyAvg
+
+// Device count by Platform
+DeviceInfo
+| where Timestamp >= ago(30d) and OnboardingStatus == "Onboarded"
+| summarize arg_max(Timestamp, *) by DeviceId
+| extend Platform = case(isempty(OSPlatform) or OSPlatform contains "Windows", "Windows", OSPlatform)
+| summarize count() by Platform
