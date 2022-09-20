@@ -1,0 +1,164 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Workspace name for Log Analytics where Sentinel is setup"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "connectorName": "CCPSampleAPIKey",
+        "connectorGuid": "8f3e9b1a-4350-4f21-b304-543d84517175"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('connectorGuid'))]",
+            "apiVersion": "2021-03-01-preview",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
+            "kind": "APIPolling",
+            "properties": {
+                "connectorUiConfig": {
+                    "id": "[variables('connectorName')]",
+                    "title": "CCP Sample (using APIKey auth)",
+                    "publisher": "Davi Cruz",
+                    "descriptionMarkdown": "Sample data connector using CCP for APIKey authentication in custom APIs",
+                    "graphQueriesTableName": "[concat(variables('connectorName'),'_CL')]",
+                    "graphQueries": [
+                        {
+                            "metricName": "Total data received",
+                            "legend": "[variables('connectorName')]",
+                            "baseQuery": "{{graphQueriesTableName}}"
+                        }
+                    ],
+                    "sampleQueries": [
+                        {
+                            "description": "[concat('All ', variables('connectorName'),' logs')]",
+                            "query": "{{graphQueriesTableName}}\n| sort by TimeGenerated desc"
+                        }
+                    ],
+                    "dataTypes": [
+                        {
+                            "name": "{{graphQueriesTableName}}",
+                            "lastDataReceivedQuery": "{{graphQueriesTableName}}\n | summarize Time = max(TimeGenerated)\n | where isnotempty(Time)"
+                        }
+                    ],
+                    "connectivityCriteria": [
+                        {
+                            "type": "SentinelKindsV2",
+                            "value": []
+                        }
+                    ],
+                    "availability": {
+                        "status": 1,
+                        "isPreview": true
+                    },
+                    "permissions": {
+                        "resourceProvider": [
+                            {
+                                "provider": "Microsoft.OperationalInsights/workspaces",
+                                "permissionsDisplayText": "read and write permissions are required.",
+                                "providerDisplayName": "Workspace",
+                                "scope": "Workspace",
+                                "requiredPermissions": {
+                                    "write": true,
+                                    "read": true,
+                                    "delete": true
+                                }
+                            }
+                        ],
+                        "customs": [
+                            {
+                                "name": "CCP Sample REST API endpoint and key",
+                                "description": "Details necessary to retrieve data from CCM Sample REST API"
+                            }
+                        ]
+                    },
+                    "instructionSteps": [
+                        {
+                            "title": "Connect CCP Sample API using APIKey authentication",
+                            "description": "Please insert your credentials",
+                            "instructions": [
+                                {
+                                    "parameters": {
+                                        "enable": "true",
+                                        "userRequestPlaceHoldersInput": [
+                                            {
+                                                "displayText": "API Endpoint",
+                                                "requestObjectKey": "apiEndpoint",
+                                                "placeHolderName": "{{apiEndpoint}}",
+                                                "placeHolderValue": ""
+                                            }
+                                        ]
+                                    },
+                                    "type": "APIKey"
+                                }
+                            ]
+                        }
+                    ],
+                    "metadata": {
+                        "id": "[variables('connectorGuid')]",
+                        "version": "1.0.1",
+                        "kind": "dataConnector",
+                        "source": {
+                            "kind": "community",
+                            "name": "Davi Cruz Security GitHub"
+                        },
+                        "author": {
+                            "name": "Davi Cruz"
+                        },
+                        "support": {
+                            "tier": "community",
+                            "name": "GitHub Issues",
+                            "email": "",
+                            "link": "https://github.com/davi-cruz/Security/issues"
+                        }
+                    }
+                },
+                "pollingConfig": {
+                    "owner": "ASI",
+                    "version": "2.0",
+                    "source": "PaaS",
+                    "auth": {
+                        "authType": "APIKey",
+                        "APIKeyName": "x-functions-key",
+                        "IsAPIKeyInPostPayload": false
+                    },
+                    "request": {
+                        "apiEndpoint": "{{apiEndpoint}}",
+                        "httpMethod": "Get",
+                        "queryTimeFormat": "yyyy-MM-ddTHH:mm:ssZ",
+                        "queryWindowInMin": 5,
+                        "isPostPayloadJson": false,
+                        "rateLimitQPS": 2,
+                        "timeoutInSeconds": 120,
+                        "retryCount": 3,
+                        "headers": {
+                            "Accept": "application/json",
+                            "User-Agent": "Scuba"
+                        }
+                    },
+                    "response": {
+                        "eventsJsonPaths": [
+                            "$.messages"
+                        ],
+                        "successStatusJsonPath": "$.status",
+                        "successStatusValue": "OK",
+                        "convertChildPropertiesToArray": true
+                    },
+                    "paging": {
+                        "pagingType": "NextPageUrl",
+                        "hasNextFlagJsonPath": "$.hasNextPage",
+                        "nextPageUrl": "$.nextPageLink"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
