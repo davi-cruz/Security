@@ -1,4 +1,4 @@
-name: MSDO ubuntu-latest
+name: Defender for DevOps Scan
 on:
   push:
     branches:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  sample:
+  MDC-DevOps:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
