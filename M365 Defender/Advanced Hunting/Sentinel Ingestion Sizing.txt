@@ -4,7 +4,7 @@ union withsource = TableName *
 | summarize total = count(), DailyBytes = sum(estimate_data_size(*)) by TableName, bin(Timestamp, 1d)
 | summarize DailyBytesAvg = avg(DailyBytes), TotalBytes = sum(DailyBytes) by TableName
 | extend TableSizeMB = format_bytes(TotalBytes, 2, "MB"),
-    DailyAvgMB = format_bytes(DailyBytesAvg, 2, "MB")
+    DailyAvgMB = format_bytes(DailyBytesAvg, 2, "MB"),
     TableSizeGB = format_bytes(TotalBytes, 2, "GB"),
     DailyAvgGB = format_bytes(DailyBytesAvg, 2, "GB")
 | sort by TotalBytes desc
