@@ -2,13 +2,13 @@
 union withsource = TableName *
 | where Timestamp >= ago(30d)
 | summarize total = count(), DailyBytes = sum(estimate_data_size(*)) by TableName, bin(Timestamp, 1d)
-| summarize DailyAvg = avg(DailyBytes), TotalTableEntries = sum(total), TotalBytes = sum(DailyBytes) by TableName
-| extend TableSizeInGB = format_bytes(TotalBytes, 2, "GB"),
-    DailyAvgInGB = format_bytes(DailyAvg, 2, "GB")
-    TableSizeInMB = format_bytes(TotalBytes, 2, "MB"),
-    DailyAvgInMB = format_bytes(DailyAvg, 2, "MB")
+| summarize DailyBytesAvg = avg(DailyBytes), TotalBytes = sum(DailyBytes) by TableName
+| extend TableSizeMB = format_bytes(TotalBytes, 2, "MB"),
+    DailyAvgMB = format_bytes(DailyBytesAvg, 2, "MB")
+    TableSizeGB = format_bytes(TotalBytes, 2, "GB"),
+    DailyAvgGB = format_bytes(DailyBytesAvg, 2, "GB")
 | sort by TotalBytes desc
-| project-away TotalBytes, DailyAvg
+| project-away TotalBytes, DailyBytesAvg
 
 // Device count by Platform
 DeviceInfo
