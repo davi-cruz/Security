@@ -2,39 +2,56 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "workspaceResourceID": {
-            "type": "String", 
-            "defaultValue":"/subscriptions/<subid>/resourcegroups/<rg>/providers/microsoft.operationalinsights/workspaces/<wksname>"
+        "workspaceName": {
+            "type": "string"
         },
-        "strAmbiente": { "type": "String" },
-        "strServico": { "type": "String" },
-        "strResponsavel": { "type": "String" }
-    },
-    "variables": {
-        "workspaceName":"[last(split(parameters('workspaceResourceID'),'/'))]",
-        "solutionName": "[concat('SecurityInsights(',variables('workspaceName'),')')]"
+        "Environment": {
+            "type": "string"
+        },
+        "InformationClassification": {
+            "type": "string"
+        },
+        "Severity": {
+            "type": "string"
+        },
+        "Squad": {
+            "type": "string"
+        }
     },
     "resources": [
         {
-            "type": "Microsoft.OperationsManagement/solutions",
-            "apiVersion": "2015-11-01-preview",
-            "name": "[variables('solutionName')]",
+            "apiVersion": "2017-03-15-preview",
+            "name": "[parameters('workspaceName')]",
             "location": "[resourceGroup().location]",
             "tags": {
-                "Ambiente": "[parameters('strAmbiente')]",
-                "Servico": "[parameters('strServico')]",
-                "Responsavel": "[parameters('strResponsavel')]"
+                "Environment": "[parameters('Environment')]",
+                "InformationClassification": "[parameters('InformationClassification')]",
+                "Severity": "[parameters('Severity')]",
+                "Squad": "[parameters('Squad')]"
             },
-            "plan": {
-                "name": "[variables('solutionName')]",
-                "promotionCode": "",
-                "product": "OMSGallery/SecurityInsights",
-                "publisher": "Microsoft"
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "properties": {
+                "sku": {
+                    "name": "pergb2018"
+                },
+                "retentionInDays": 90
+            }
+        },
+        {
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/default')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/onboardingStates",
+            "apiVersion": "2021-03-01-preview",
+            "tags": {
+                "Environment": "[parameters('Environment')]",
+                "InformationClassification": "[parameters('InformationClassification')]",
+                "Severity": "[parameters('Severity')]",
+                "Squad": "[parameters('Squad')]"
             },
             "properties": {
-                "workspaceResourceId": "[parameters('workspaceResourceID')]",
-                "containedResources": []
-            }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+            ]
         }
     ]
 }
