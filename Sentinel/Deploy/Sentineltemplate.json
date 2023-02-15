@@ -18,18 +18,21 @@
             "type": "string"
         }
     },
+    "variables": {
+        "solutionName": "[concat('SecurityInsights(',parameters('workspaceName'),')')]"
+    },
     "resources": [
         {
             "apiVersion": "2017-03-15-preview",
             "name": "[parameters('workspaceName')]",
             "location": "[resourceGroup().location]",
+            "type": "Microsoft.OperationalInsights/workspaces",
             "tags": {
                 "Environment": "[parameters('Environment')]",
                 "InformationClassification": "[parameters('InformationClassification')]",
                 "Severity": "[parameters('Severity')]",
                 "Squad": "[parameters('Squad')]"
             },
-            "type": "Microsoft.OperationalInsights/workspaces",
             "properties": {
                 "sku": {
                     "name": "pergb2018"
@@ -38,16 +41,25 @@
             }
         },
         {
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/default')]",
-            "type": "Microsoft.OperationalInsights/workspaces/providers/onboardingStates",
-            "apiVersion": "2021-03-01-preview",
+            "apiVersion": "2015-11-01-preview",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "name": "[variables('solutionName')]",
+            "location": "[resourceGroup().location]",
             "tags": {
                 "Environment": "[parameters('Environment')]",
                 "InformationClassification": "[parameters('InformationClassification')]",
                 "Severity": "[parameters('Severity')]",
                 "Squad": "[parameters('Squad')]"
             },
+            "plan": {
+                "name": "[variables('solutionName')]",
+                "promotionCode": "",
+                "product": "OMSGallery/SecurityInsights",
+                "publisher": "Microsoft"
+            },
             "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
+                "containedResources": []
             },
             "dependsOn": [
                 "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
