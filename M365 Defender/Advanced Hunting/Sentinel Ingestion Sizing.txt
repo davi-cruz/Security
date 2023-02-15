@@ -14,5 +14,4 @@ union withsource = TableName *
 DeviceInfo
 | where Timestamp >= ago(30d) and OnboardingStatus == "Onboarded"
 | summarize arg_max(Timestamp, *) by DeviceId
-| extend Platform = case(isempty(OSPlatform) or OSPlatform contains "Windows", "Windows", OSPlatform)
-| summarize count() by Platform
+| summarize count() by DeviceCategory, DeviceType, OSPlatform
