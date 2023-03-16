@@ -29,7 +29,7 @@
     },
     "variables": {
         "vmss_Name": "[concat(parameters('Base_Name'), '-vmss')]",
-        "storage_name": "[tolower(concat(parameters('Base_Name'), 'diag'))]",
+        "storage_name": "[replace(tolower(concat(parameters('Base_Name'), 'diag')),'-','')]",
         "nsg_Name": "[concat(parameters('Base_Name'),'-nsg')]",
         "vnet_Name": "[concat(parameters('Base_Name'), '-vnet')]",
         "pip_Name": "[concat(parameters('Base_Name'),'-pip')]",
