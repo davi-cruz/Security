@@ -379,9 +379,6 @@
                                 },
                                 "vaultCertificates": [
                                     {
-                                        "certificateUrl": "https://kv-dc-mgmt-rsyslog.vault.azure.net:443/certificates/DaviCruzNetRsyslogTLS/d7f822db19e542bf9f86c798fe23628e"
-                                    },
-                                    {
                                         "certificateUrl": "https://kv-dc-mgmt-rsyslog.vault.azure.net:443/secrets/DaviCruzNetRsyslogTLS/d7f822db19e542bf9f86c798fe23628e"
                                     }
                                 ]
