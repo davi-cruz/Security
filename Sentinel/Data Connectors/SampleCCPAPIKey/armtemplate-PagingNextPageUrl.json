@@ -103,7 +103,7 @@
                     ],
                     "metadata": {
                         "id": "[variables('connectorGuid')]",
-                        "version": "1.0.1",
+                        "version": "1.0.2",
                         "kind": "dataConnector",
                         "source": {
                             "kind": "community",
@@ -153,8 +153,8 @@
                     },
                     "paging": {
                         "pagingType": "NextPageUrl",
-                        "hasNextFlagJsonPath": "$.hasNextPage",
-                        "nextPageUrl": "$.nextPageLink"
+                        "hasNextFlagJsonPath": "$.hasNext",
+                        "nextPageUrl": "$.nextLink"
                     }
                 }
             }
