@@ -1,0 +1,1 @@
+# Microsoft Sentinel Log Collector using Rsyslog over TLS

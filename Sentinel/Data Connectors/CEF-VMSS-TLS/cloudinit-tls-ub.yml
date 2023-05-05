@@ -1,6 +1,9 @@
 #cloud-config
+package_upgrade: true
+packages:
+  - rsyslog-gnutls
 write_files:
-  - path: /etc/rsyslog-tls/rsyslog-tls-server.conf
+  - path: /etc/rsyslog.d/00-rsyslog-tls-server.conf
     owner: root:root
     permissions: "0644"
     content: |
@@ -15,7 +18,6 @@ write_files:
       # Configures the imtcp module as a TCP syslog receiver with TLS enabled, enforcing TLS 1.2 or 1.3
       module(
           load="imtcp"
-          gnutlspriorityString="SECURE128:+SECURE192:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3"
           StreamDriver.AuthMode="anon"
           StreamDriver.Mode="1"
           StreamDriver.Name="gtls"
@@ -34,21 +36,21 @@ write_files:
 runcmd:
   - while ( ! (find /var/log/azure/Microsoft.EnterpriseCloud.Monitoring.OmsAgentForLinux/extension.log | xargs grep "Enable,success,0,Enable succeeded")); do sleep 5; done
   - sudo apt-get update
+  - sudo echo \"\" >> /etc/security/limits.conf
+  - sudo echo \"# Included by CEF TLS VMSS cloud-init\" >> /etc/security/limits.conf
   - sudo echo \"root         soft    nofile         65536\" >> /etc/security/limits.conf
   - sudo echo \"root         hard    nofile         65536\" >> /etc/security/limits.conf
   - sudo echo \"*         soft    nofile         65536\" >> /etc/security/limits.conf
   - sudo echo \"*         hard    nofile         65536\" >> /etc/security/limits.conf
-  - [
-      sudo,
-      sed,
-      -i,
-      "'/#### GLOBAL DIRECTIVES ####/a ###########################\n\n###########################\n# CEF TLS Config\n$IncludeConfig /etc/rsyslog-tls/rsyslog-tls-server.conf' /etc/rsyslog.conf",
-    ]
+  - sudo echo \"# End of CEF TLS VMSS cloud-init settings\" >> /etc/security/limits.conf
   - sudo wget https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/DataConnectors/CEF/cef_installer.py&&sudo python cef_installer.py <workspaceid> <workspacekey>
-  - sudo wget https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/DataConnectors/CEF-VMSS/security-config-omsagent.conf -O /etc/rsyslog.d/60-cef.conf
+  - sudo wget https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/DataConnectors/CEF-VMSS/security-config-omsagent.conf -O /etc/rsyslog.d/security-config-omsagent.conf
+  - sudo mv /etc/rsyslog.d/security-config-omsagent.conf /etc/rsyslog.d/60-cef.conf
   - sudo wget https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/DataConnectors/CEF/TimeGenerated.py && echo Yes | sudo python TimeGenerated.py <workspaceid>
-  - sudo sed -i -e 's@input(type="imudp" port="514")@input(type="imudp" port="514" ruleset="forwarddata")@g' /etc/rsyslog.conf
-  - sudo sed -i -e 's@input(type="imtcp" port="514")@input(type="imtcp" port="514" ruleset="forwarddata")@g' /etc/rsyslog.conf
+  - sudo sed -i -e 's@module(load="imudp")@#module(load="imudp")@g' /etc/rsyslog.conf
+  - sudo sed -i -e 's@module(load="imtcp")@#module(load="imtcp")@g' /etc/rsyslog.conf
+  - sudo sed -i -e 's@input(type="imudp" port="514")@#input(type="imudp" port="514" ruleset="forwarddata")@g' /etc/rsyslog.conf
+  - sudo sed -i -e 's@input(type="imtcp" port="514")@#input(type="imtcp" port="514" ruleset="forwarddata")@g' /etc/rsyslog.conf
   - secretsname=$(sudo find /var/lib/waagent/ -name "*<thumbprint>.prv" | cut -c -57)
   - cp $secretsname.crt /etc/rsyslog-tls/rsyslog-tls.cer
   - cp $secretsname.prv /etc/rsyslog-tls/rsyslog-tls.key

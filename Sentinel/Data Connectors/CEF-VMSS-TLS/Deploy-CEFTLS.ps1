@@ -7,6 +7,14 @@ param(
     [Parameter(Mandatory)][ValidateNotNullOrEmpty()][ValidateSet('Ubuntu', 'RedHat')][string]$platform
 )
 
+Write-Output "[+] Parameters:"
+Write-Output " - workspaceId = $workspaceId"
+Write-Output " - workspaceKey = $workspaceKey"
+Write-Output " - keyVaultName = $keyVaultName"
+Write-Output " - tlsSecretName = $tlsSecretName"
+Write-Output " - caSecretName = $caSecretName"
+Write-Output " - platform = $platform"
+
 switch ($platform) {
     'Ubuntu' {
         $cloudInit = Get-Content -Path ./cloudinit-tls-ub.yml
