@@ -25,7 +25,7 @@
             "properties": {
                 "connectorUiConfig": {
                     "id": "[variables('connectorName')]",
-                    "title": "CCP Sample (using APIKey auth)",
+                    "title": "CCP Sample (using APIKey and NextPage Pagination)",
                     "publisher": "Davi Cruz",
                     "descriptionMarkdown": "Sample data connector using CCP for APIKey authentication in custom APIs",
                     "graphQueriesTableName": "[concat(variables('connectorName'),'_CL')]",
@@ -103,7 +103,7 @@
                     ],
                     "metadata": {
                         "id": "[variables('connectorGuid')]",
-                        "version": "1.0.2",
+                        "version": "1.0.3",
                         "kind": "dataConnector",
                         "source": {
                             "kind": "community",
