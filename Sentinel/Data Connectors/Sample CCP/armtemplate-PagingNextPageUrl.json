@@ -4,12 +4,12 @@
     "parameters": {
         "workspaceName": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Workspace name for Log Analytics where Sentinel is setup"
             }
         }
     },
-    "functions": [],
     "variables": {
         "connectorName": "CCPSampleAPIKey",
         "connectorGuid": "8f3e9b1a-4350-4f21-b304-543d84517175"
@@ -17,14 +17,13 @@
     "resources": [
         {
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('connectorGuid'))]",
+            "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/Microsoft.OperationalInsights/workspaces/',parameters('workspaceName'),'/providers/Microsoft.SecurityInsights/dataConnectors/',variables('connectorGuid'))]",
             "apiVersion": "2021-03-01-preview",
             "location": "[resourceGroup().location]",
             "dependsOn": [],
             "kind": "APIPolling",
             "properties": {
                 "connectorUiConfig": {
-                    "id": "[variables('connectorName')]",
                     "title": "CCP Sample (using APIKey and NextPage Pagination)",
                     "publisher": "Davi Cruz",
                     "descriptionMarkdown": "Sample data connector using CCP for APIKey authentication in custom APIs",
@@ -48,10 +47,12 @@
                             "lastDataReceivedQuery": "{{graphQueriesTableName}}\n | summarize Time = max(TimeGenerated)\n | where isnotempty(Time)"
                         }
                     ],
-                    "connectivityCriteria": [
+                    "connectivityCriterias": [
                         {
                             "type": "SentinelKindsV2",
-                            "value": []
+                            "value": [
+                                "APIPolling"
+                            ]
                         }
                     ],
                     "availability": {
@@ -66,6 +67,7 @@
                                 "providerDisplayName": "Workspace",
                                 "scope": "Workspace",
                                 "requiredPermissions": {
+                                    "action": true,
                                     "write": true,
                                     "read": true,
                                     "delete": true
@@ -100,25 +102,7 @@
                                 }
                             ]
                         }
-                    ],
-                    "metadata": {
-                        "id": "[variables('connectorGuid')]",
-                        "version": "1.0.3",
-                        "kind": "dataConnector",
-                        "source": {
-                            "kind": "community",
-                            "name": "Davi Cruz Security GitHub"
-                        },
-                        "author": {
-                            "name": "Davi Cruz"
-                        },
-                        "support": {
-                            "tier": "community",
-                            "name": "GitHub Issues",
-                            "email": "",
-                            "link": "https://github.com/davi-cruz/Security/issues"
-                        }
-                    }
+                    ]
                 },
                 "pollingConfig": {
                     "owner": "ASI",
@@ -127,20 +111,20 @@
                     "auth": {
                         "authType": "APIKey",
                         "APIKeyName": "x-functions-key",
-                        "IsAPIKeyInPostPayload": false
+                        "IsAPIKeyInPostPayload": true
                     },
                     "request": {
                         "apiEndpoint": "{{apiEndpoint}}",
                         "httpMethod": "Get",
                         "queryTimeFormat": "yyyy-MM-ddTHH:mm:ssZ",
-                        "queryWindowInMin": 5,
-                        "isPostPayloadJson": false,
-                        "rateLimitQPS": 2,
+                        "queryWindowInMin": 10,
+                        "rateLimitQPS": 10,
                         "timeoutInSeconds": 120,
                         "retryCount": 3,
+
                         "headers": {
                             "Accept": "application/json",
-                            "User-Agent": "Scuba"
+                            "User-Agent": "Microsoft-Sentinel-CCP/1.0"
                         }
                     },
                     "response": {
@@ -159,6 +143,5 @@
                 }
             }
         }
-    ],
-    "outputs": {}
+    ]
 }
