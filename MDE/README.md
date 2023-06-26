@@ -10,3 +10,4 @@
 
 - [MDE Intune Evaluation Config](https://github.com/davi-cruz/Security/tree/main/MDE/Windows/IntuneEvaluationConfig): Sample Intune Policies to evaluate MDE Capabilities based on article [Evaluate Microsoft Defender Antivirus](https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/evaluate-microsoft-defender-antivirus?view=o365-worldwide).
   - Usage: Download assets and run `.\Import-IntunePolicies.ps1` point to the folder where you downloaded the assets. Files must be in the folder structure used by IntuneBackupAndRestore Module.
+  - After importing the policies, assign them to the Azure AD Group of devices/users you want to evaluate MDE on.
