@@ -14,6 +14,13 @@ param (
     [string]$BackupPath = "C:\Temp\BackupIntune\"
 )
 
+## Requer PowerShell 5, pre-requisito para o módulo Microsoft.Graph.Intune
+$majorVersion = $PSVersionTable.PSVersion.Major
+if($majorVersion -ne 5) {
+    Write-Host "This script requires PowerShell 5. You have PowerShell $majorVersion"
+    exit
+}
+
 $modules = @("IntuneBackupAndRestore", "Microsoft.Graph.Intune")
 foreach($module in $modules) {
     ## Tenta atualizar módulo, se não existir, instala
