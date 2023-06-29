@@ -11,7 +11,7 @@
         "packageUrl": {
             "type": "string",
             "defaultValue": "https://github.com/davi-cruz/Security/raw/main/MDC/MDC-Shield/Func_MDC-Shield-AWS.zip"
-        }, 
+        },
         "AZURE_MSI_AUDIENCE": {
             "type": "string",
             "defaultValue": "urn://mdc_shield_aws/.default"
@@ -71,14 +71,15 @@
         },
         {
             "type": "Microsoft.Web/serverfarms",
-            "apiVersion": "2018-02-01",
+            "apiVersion": "2018-11-01",
             "name": "[variables('FunctionName')]",
             "location": "[resourceGroup().location]",
             "sku": {
                 "name": "Y1",
-                "tier": "Dynamic"
+                "tier": "Dynamic",
+                "family": "Y"
             },
-            "kind": "functionapp",
+            "kind": "linux",
             "properties": {
                 "name": "[variables('FunctionName')]",
                 "workerSize": "0",
@@ -135,7 +136,7 @@
                 "[resourceId('Microsoft.Web/serverfarms', variables('FunctionName'))]",
                 "[resourceId('Microsoft.Insights/components', variables('FunctionName'))]"
             ],
-            "kind": "functionapp",
+            "kind": "functionapp,linux",
             "identity": {
                 "type": "SystemAssigned"
             },
@@ -166,6 +167,17 @@
                         "WEBSITE_CONTENTSHARE": "[toLower(variables('FunctionName'))]",
                         "WEBSITE_RUN_FROM_PACKAGE": "[parameters('packageUrl')]"
                     }
+                },
+                {
+                    "apiVersion": "2018-11-01",
+                    "type": "config",
+                    "name": "linuxFxVersion",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', variables('FunctionName'))]"
+                    ],
+                    "properties": {
+                        "linuxFxVersion": "Python|3.10"
+                    }	
                 }
             ]
         },
