@@ -46,7 +46,7 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
 
   - The Function can be deployed using the button below. Alternatively, you can use the folder `MDC-Shield-AWS` in this repository to adjust it and deploy directly from VSCode or your preferred IDE directly to Azure.
 
-    ![Deploy To Azure](images\deployToAzure.svg)
+    [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw%2Egithubusercontent%2Ecom%2Fdavi%2Dcruz%2FSecurity%2Fmain%2FMDC%2FMDC%2DShield%2Fazuredeployaws%2Ejson) 
 
   - During Function deployment (or manually if you used other methods) you'll need to fill in the following information:
     - **AZURE_TENANT_ID**: Unique identifier in GUID format that can be obtained from your Azure or Microsoft Entra portal.
