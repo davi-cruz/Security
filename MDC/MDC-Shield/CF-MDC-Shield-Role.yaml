@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Creates MDC Shield Role federated with Microsoft Entra. Adjust Policies as
+  needed by desired remediations.
+  
+Parameters:
+  TenantID:
+    Type: String
+    Description: Azure AD Tenant Id (GUID)
+  AzureAuthorityUri:
+    Type: String
+    Description: Microsoft Default STS Authority URI
+    Default: sts.windows.net
+  RoleName:
+    Type: String
+    Description: Name of the role for MDC Shield
+    Default: MDC-Shield-Role
+  ClientID:
+    Type: String
+    Description: MDC Shield App URI/URN - without the '/.default'
+    Default: 'urn://mdc_shield_aws'
+Resources:
+  MDCShieldRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument:
+        Fn::Sub: >-
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Federated": "arn:aws:iam::${AWS::AccountId}:oidc-provider/${AzureAuthorityUri}/${TenantID}/"
+                },
+                "Action": "sts:AssumeRoleWithWebIdentity",
+                "Condition": {
+                  "StringEquals": {
+                    "${AzureAuthorityUri}/${TenantID}/:aud": "${ClientID}"
+                  }
+                }
+              }
+            ]
+          }
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess'
+      MaxSessionDuration: 3600

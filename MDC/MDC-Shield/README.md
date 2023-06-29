@@ -33,7 +33,7 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
     - Go to Entra portal > Azure Active Directory > Applications > App Registrations > New Registration.
     - Specify the user-facing name for the application, for example, `MDC Shield AWS` and click Register.
     - After created, go to the App Registration > Manage > Expose an API
-    - Under "Application ID URI" click "Add" and specify the URN/URI for the application. For example, `urn://my-mdc-shield-aws-app`.
+    - Under "Application ID URI" click "Add" and specify the URN/URI for the application. For example, `urn://mdc_shield_aws`.
     - Now go to the **App roles** option and create a new App Role with the following information:
       - DisplayName: `AssumeRoleWithWebIdentity`
       - Allowed member types: **Applications**
@@ -52,7 +52,7 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
     - **AZURE_TENANT_ID**: Unique identifier in GUID format that can be obtained from your Azure or Microsoft Entra portal.
     - **AZURE_AUTHORITY_HOST**: This is the default value for Azure AD. It has to be set to `login.microsoftonline.com`.
     - **AZURE_MSI_AUDIENCE**: This is where you'll specify the Main App Registration URI. It can be obtained from the Azure Portal or Microsoft Entra portal.
-    - **AZURE_MSI_CLIENT_ID**: This is the System or User Managed Identity Client ID. It can be obtained from the Azure Portal or Microsoft Entra portal. It has to end with `/.default` as the following example: `urn://my-mdc-shield-aws-app/.default`.
+    - **AZURE_MSI_CLIENT_ID**: This is the System or User Managed Identity Client ID. It can be obtained from the Azure Portal or Microsoft Entra portal. It has to end with `/.default` as the following example: `urn://mdc_shield_aws/.default`.
 
   > Note that unless explicitly specified, you'll always use the Client/Application ID for the resources. The Object ID is used for the Role Assignment.
 
@@ -74,7 +74,7 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
 
   - Now, in the AWS Portal, go to your organization and then navigate to IAM
   - If this is your first time integrating a Azure AD Solution to AWS IAM, you'll need to create a Identity provider. You can use the Cloud Formation template `CF-MicrosoftEntra-OIDC.yaml` available in the `MDC-Shield-AWS` folder in this repository.
-  - After this deployment, be sure that the Main Application URI/URN is included in the valid audiences for the Identity Provider as below. If not, just include it and save the changes as it was created, without the `/.default` suffix.
+  - After this deployment, be sure that the Main Application URI/URN is included in the valid audiences for the Identity Provider as below. If not, just include it manually and save the changes as it was created, without the `/.default` suffix, or update the used template to include it.
 
   ![Including Audiences to AWS IAM Identity Provider](images/mdc-shield-aws-oidc.png)
 

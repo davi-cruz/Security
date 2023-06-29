@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Creates OIDC provider that allows the Microsoft Entra Application to assume an
+  AWS role
+Parameters:
+  TenantID:
+    Type: String
+    Description: ID of the Azure AD tenant
+  ClientID:
+    Type: String
+    Description: MDC Shield App URI/URN
+    Default: 'urn://mdc_shield_aws/.default'
+  Thumbprint:
+    Type: String
+    Description: Thumbprint
+    Default: 626d44e704d1ceabe3bf0d53397464ac8080142c
+Resources:
+  MicrosoftEntraOidcIdP:
+    Type: 'AWS::IAM::OIDCProvider'
+    Properties:
+      ClientIdList:
+        - !Ref ClientID
+      ThumbprintList:
+        - !Ref Thumbprint
+      Url: !Sub 'https://sts.windows.net/${TenantID}/'
+Outputs:
+  MicrosoftEntraOidcIdP:
+    Description: ARN of the created OIDC provider
+    Value: !Ref MicrosoftEntraOidcIdP
