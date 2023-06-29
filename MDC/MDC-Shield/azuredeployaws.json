@@ -1,0 +1,135 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "string",
+            "defaultValue": "mdcshield"
+        },
+        "linuxFxVersion": {
+            "type": "string",
+            "defaultValue": "Python|3.10"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "nameString": "[concat(parameters('name'), uniqueString(resourceGroup().id))]"
+
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('name')]",
+            "type": "Microsoft.Web/sites",
+            "kind": "functionapp,linux",
+            "location": "[variables('location')]",
+            "tags": {
+                "hidden-link: /app-insights-resource-id": "[concat('/subscriptions/', subscription().id, '/resourceGroups/', resourceGroup().id,
+                '/providers/Microsoft.Insights/components/', parameters('name'))]"
+            },
+            "dependsOn": [
+                "[concat('microsoft.insights/components/', parameters('name'))]",
+                "[concat('Microsoft.Web/serverfarms/', variables('nameString'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', variables('nameString'))]"
+            ],
+            "properties": {
+                "name": "[parameters('name')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~4"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "python"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference('microsoft.insights/components/mdc-shield-aws-random', '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference('microsoft.insights/components/mdc-shield-aws-random', '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('nameString'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('nameString')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('nameString'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('nameString')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "mdc-shield-aws-random97b6"
+                        }
+                    ],
+                    "cors": {
+                        "allowedOrigins": [
+                            "https://portal.azure.com"
+                        ]
+                    },
+                    "use32BitWorkerProcess": false,
+                    "ftpsState": "FtpsOnly",
+                    "linuxFxVersion": "[parameters('linuxFxVersion')]"
+                },
+                "clientAffinityEnabled": false,
+                "virtualNetworkSubnetId": null,
+                "publicNetworkAccess": "Enabled",
+                "httpsOnly": true,
+                "serverFarmId": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('nameString'))]"
+            }
+        },
+        {
+            "apiVersion": "2018-11-01",
+            "name": "[variables('nameString')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[variables('location')]",
+            "kind": "linux",
+            "tags": {},
+            "dependsOn": [],
+            "properties": {
+                "name": "[variables('nameString')]",
+                "workerSize": "0",
+                "workerSizeId": "0",
+                "numberOfWorkers": "1",
+                "reserved": true
+            },
+            "sku": {
+                "Tier": "Dynamic",
+                "Name": "Y1"
+            }
+        },
+        {
+            "apiVersion": "2020-02-02-preview",
+            "name": "mdc-shield-aws-random",
+            "type": "microsoft.insights/components",
+            "location": "eastus",
+            "tags": {},
+            "dependsOn": [],
+            "properties": {
+                "ApplicationId": "[parameters('name')]",
+                "Request_Source": "IbizaWebAppExtensionCreate",
+                "Flow_Type": "Redfield",
+                "Application_Type": "web",
+                "WorkspaceResourceId": "/subscriptions/0aee32c5-9170-4b6f-870a-6fcbaa2f6b89/resourceGroups/DefaultResourceGroup-EUS/providers/Microsoft.OperationalInsights/workspaces/DefaultWorkspace-0aee32c5-9170-4b6f-870a-6fcbaa2f6b89-EUS"
+            }
+        },
+        {
+            "apiVersion": "2022-05-01",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('nameString')]",
+            "location": "[variables('location')]",
+            "tags": {},
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "properties": {
+                "supportsHttpsTrafficOnly": true,
+                "minimumTlsVersion": "TLS1_2",
+                "defaultToOAuthAuthentication": true
+            }
+        }
+    ]
+}
