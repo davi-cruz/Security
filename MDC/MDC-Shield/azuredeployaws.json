@@ -11,6 +11,10 @@
         "packageUrl": {
             "type": "string",
             "defaultValue": "https://github.com/davi-cruz/Security/raw/main/MDC/MDC-Shield/Func_MDC-Shield-AWS.zip"
+        }, 
+        "AZURE_MSI_AUDIENCE": {
+            "type": "string",
+            "defaultValue": "urn://mdc_shield_aws/.default"
         }
     },
     "variables": {
@@ -153,7 +157,7 @@
                     "properties": {
                         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.insights/components', variables('FunctionName')), '2015-05-01').InstrumentationKey]",
                         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('microsoft.insights/components', variables('FunctionName')), '2015-05-01').ConnectionString]",
-                        "AZURE_MSI_CLIENT_ID": "",
+                        "AZURE_MSI_AUDIENCE": "[parameters('AZURE_MSI_AUDIENCE')]",
                         "AzureWebJobsFeatureFlags": "EnableWorkerIndexing",
                         "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', toLower(variables('FunctionName')),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', toLower(variables('FunctionName'))), '2019-06-01').keys[0].value, ';EndpointSuffix=',toLower(variables('StorageSuffix')))]",
                         "FUNCTIONS_EXTENSION_VERSION": "~4",
