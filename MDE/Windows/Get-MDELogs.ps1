@@ -20,7 +20,7 @@ New-Item -Path $folder -ItemType Directory -Force | Out-Null
 $commands = @("Get-MpComputerStatus", "Get-MpPreference")
 
 foreach ($command in $commands) {
-    Invoke-Expression $command | Select-Object -ExcludeProperty CimClass, CimSystemProperties | ConvertTo-Json -Depth 5 | Out-File -FilePath "$folder\$command.json"
+    Invoke-Expression $command | Select-Object -ExcludeProperty CimClass, CimSystemProperties, CimInstanceProperties | ConvertTo-Json -Depth 5 | Out-File -FilePath "$folder\$command.json"
 }
 
 # Collect MDM Settings
