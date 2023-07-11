@@ -8,10 +8,12 @@ on:
   push:
     branches:
       - main
+    # paths:
+    #   - "MDC/MDC-Shield/MDC-Shield-AWS/**"
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'MDC/MDC-Shield/MDC-Shield-AWS-Python' # set this to the path to your web app project, defaults to the repository root
   PYTHON_VERSION: '3.10' # set this to the python version to use (supports 3.6, 3.7, 3.8)
 
 jobs:
@@ -22,27 +24,25 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup Python version
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Create and start virtual environment
+      - name: Create and setup virtual environment
         run: |
+          pushd '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
           python -m venv venv
           source venv/bin/activate
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-        
-      # Optional: Add step to run tests here
+          pip install -r requirements.txt
+          popd
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: python-app
           path: |
-            . 
-            !venv/
+            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/venv/
 
   deploy:
     runs-on: ubuntu-latest
