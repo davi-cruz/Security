@@ -8,8 +8,8 @@ on:
   push:
     branches:
       - main
-    # paths:
-    #   - "MDC/MDC-Shield/MDC-Shield-AWS/**"
+    paths:
+      - "MDC/MDC-Shield/MDC-Shield-AWS-Python/**"
   workflow_dispatch:
 
 env:
