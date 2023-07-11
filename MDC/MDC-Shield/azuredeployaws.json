@@ -165,6 +165,14 @@
                             "value": "[parameters('AZURE_MSI_AUDIENCE')]"
                         },
                         {
+                            "name": "AZURE_MSI_CLIENT_ID",
+                            "value": "Fill In Your Client ID"
+                        },
+                        {
+                            "name": "AZURE_AUTHORITY_HOST",
+                            "value": "login.microsoftonline.com"
+                        },
+                        {
                             "name": "AzureWebJobsStorage",
                             "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', toLower(variables('FunctionName')),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', toLower(variables('FunctionName'))), '2019-06-01').keys[0].value, ';EndpointSuffix=',toLower(variables('StorageSuffix')))]"
                         },
