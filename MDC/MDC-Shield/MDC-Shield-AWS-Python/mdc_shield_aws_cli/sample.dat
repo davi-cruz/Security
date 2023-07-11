@@ -1,0 +1,9 @@
+{
+  "cmd": [
+    "ec2",
+    "describe-instances"
+  ],
+  "aws_role_arn": "<your Role ARN>",
+  "aws_session_name": "MDCShield",
+  "aws_region": "us-east-2"
+}
