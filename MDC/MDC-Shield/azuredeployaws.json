@@ -8,10 +8,6 @@
             "maxLength": 11,
             "type": "string"
         },
-        "packageUrl": {
-            "type": "string",
-            "defaultValue": "https://github.com/davi-cruz/Security/raw/main/MDC/MDC-Shield/Func_MDC-Shield-AWS.zip"
-        },
         "AZURE_MSI_AUDIENCE": {
             "type": "string",
             "defaultValue": "urn://mdc_shield_aws/.default"
