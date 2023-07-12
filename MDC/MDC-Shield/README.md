@@ -50,14 +50,13 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
 
   - During Function deployment (or manually if you used other methods) you'll need to fill in the following information:
     - **AZURE_AUTHORITY_HOST**: This is the default value for Azure AD. It has to be set to `login.microsoftonline.com`.
-    - **AZURE_MSI_AUDIENCE**: This is where you'll specify the Main App Registration URI. It can be obtained from the Azure Portal or Microsoft Entra portal.
-    - **AZURE_MSI_CLIENT_ID**: This is the System or User Managed Identity Client ID. It can be obtained from the Azure Portal or Microsoft Entra portal. It has to end with `/.default` as the following example: `urn://mdc_shield_aws/.default`.
+    - **AZURE_MSI_AUDIENCE**: This is where you'll specify the Main App Registration URI. It can be obtained from the Azure Portal or Microsoft Entra portal and has to end with `/.default` as the following example: `urn://mdc_shield_aws/.default`.
 
   > Note that unless explicitly specified, you'll always use the Client/Application ID for the resources. The Object ID is used for the Role Assignment.
 
 - Azure AD Role Provisioning
 
-  - **Production**: Now you'll need to grant the System/User-assigned Managed Identity the previously created Application Role to the Main application. To make it easier I shared below a powershell snippet which grants the identities the necessary roles:
+  - **Production**: Now you'll need to grant the Managed Identity the previously created Application Role to the Main application. To make it easier I shared below a powershell snippet which grants the identities the necessary roles:
 
     ```powershell
     Connect-AzureAD

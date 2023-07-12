@@ -1,13 +1,11 @@
-"""
- __  __ ____   ____   ____  _     _      _     _      ___        ______
-|  \/  |  _ \ / ___| / ___|| |__ (_) ___| | __| |    / \ \      / / ___|
-| |\/| | | | | |     \___ \| '_ \| |/ _ \ |/ _` |   / _ \ \ /\ / /\___ \
-| |  | | |_| | |___   ___) | | | | |  __/ | (_| |  / ___ \ V  V /  ___) |
-|_|  |_|____/ \____| |____/|_| |_|_|\___|_|\__,_| /_/   \_\_/\_/  |____/
+#  __  __ ____   ____   ____  _     _      _     _      ___        ______
+# |  \/  |  _ \ / ___| / ___|| |__ (_) ___| | __| |    / \ \      / / ___|
+# | |\/| | | | | |     \___ \| '_ \| |/ _ \ |/ _` |   / _ \ \ /\ / /\___ \
+# | |  | | |_| | |___   ___) | | | | |  __/ | (_| |  / ___ \ V  V /  ___) |
+# |_|  |_|____/ \____| |____/|_| |_|_|\___|_|\__,_| /_/   \_\_/\_/  |____/
 
-Microsoft Defender for Cloud (MDC) Shield
-Advanced Remediation for your AWS resources
-"""
+# Microsoft Defender for Cloud (MDC) Shield
+# Advanced Remediation for your AWS resources
 
 import io
 import json
@@ -54,7 +52,7 @@ def authenticate_to_aws(aws_role_arn, aws_session_name, aws_region, token):
         config_file.write(f"region = {aws_region}\n")
         config_file.write(f"output = json\n")
 
-    clidriver = awscli.clidriver.create_clidriver()
+    # clidriver = awscli.clidriver.create_clidriver()
 
     sso_params = [
         'sts', 'assume-role-with-web-identity',
@@ -65,7 +63,10 @@ def authenticate_to_aws(aws_role_arn, aws_session_name, aws_region, token):
     ]
 
     sso_output = execute_aws_cli(sso_params)
-    sso_output = json.loads(sso_output['content'])
+    try:
+        sso_output = json.loads(sso_output['content'])
+    except Exception as e:
+        raise Exception(sso_output)
 
     credentials_file_path = os.path.join(home_dir, ".aws", "credentials")
 
@@ -98,8 +99,8 @@ def process_request(req_body):
 
 def get_azure_token():
     audience = os.environ['AZURE_MSI_AUDIENCE']
-    msi_credential = ManagedIdentityCredential(client_id=os.environ['AZURE_MSI_CLIENT_ID'])
-    ec_credential = EnvironmentCredential()
+    msi_credential = ManagedIdentityCredential() ## Modify this if you're using a User-assigned Managed Identity
+    ec_credential = EnvironmentCredential() ## For development purposes only
     chained_credential = ChainedTokenCredential(msi_credential, ec_credential)
     token = chained_credential.get_token(audience).token
     return token

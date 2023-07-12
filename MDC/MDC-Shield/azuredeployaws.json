@@ -165,12 +165,12 @@
                             "value": "[parameters('AZURE_MSI_AUDIENCE')]"
                         },
                         {
-                            "name": "AZURE_MSI_CLIENT_ID",
-                            "value": "Fill In Your Client ID"
-                        },
-                        {
                             "name": "AZURE_AUTHORITY_HOST",
                             "value": "login.microsoftonline.com"
+                        },
+                        {
+                            "name": "AzureWebJobsFeatureFlags",
+                            "value": "EnableWorkerIndexing"
                         },
                         {
                             "name": "AzureWebJobsStorage",
@@ -185,23 +185,18 @@
                             "value": "python"
                         },
                         {
+                            "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+                            "value": "true"
+                        },
+                        {
                             "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
                             "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', toLower(variables('FunctionName')),';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', toLower(variables('FunctionName'))), '2019-06-01').keys[0].value, ';EndpointSuffix=',toLower(variables('StorageSuffix')))]"
                         },
                         {
                             "name": "WEBSITE_CONTENTSHARE",
                             "value": "[toLower(variables('FunctionName'))]"
-                        },
-                        {
-                            "name": "WEBSITE_RUN_FROM_PACKAGE",
-                            "value": "[parameters('packageUrl')]"
                         }
                     ],
-                    "cors": {
-                        "allowedOrigins": [
-                            "https://portal.azure.com"
-                        ]
-                    },
                     "use32BitWorkerProcess": false,
                     "ftpsState": "FtpsOnly",
                     "linuxFxVersion": "Python|3.10"

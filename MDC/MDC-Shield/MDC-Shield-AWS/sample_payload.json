@@ -3,7 +3,7 @@
     "ec2",
     "describe-instances"
   ],
-  "aws_role_arn": "<your Role ARN>",
+  "aws_role_arn": "arn:aws:iam::006274001514:role/MDC-Shield-Role",
   "aws_session_name": "MDCShield",
   "aws_region": "us-east-2"
 }
