@@ -46,7 +46,7 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
 
   - The Function can be deployed using the button below. Alternatively, you can use the folder `MDC-Shield-AWS` in this repository to adjust it and deploy directly from VSCode or your preferred IDE directly to Azure.
 
-    [![Deploy to Azure](images/deploytoazure.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw%2Egithubusercontent%2Ecom%2Fdavi%2Dcruz%2FSecurity%2Fmain%2FMDC%2FMDC%2DShield%2Fazuredeployaws%2Ejson) 
+    [![Deploy to Azure](images/deploytoazure.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw%2Egithubusercontent%2Ecom%2Fdavi%2Dcruz%2FSecurity%2Fmain%2FMDC%2FMDC%2DShield%2Fazuredeployaws%2Ejson)
 
   - During Function deployment (or manually if you used other methods) you'll need to fill in the following information:
     - **AZURE_AUTHORITY_HOST**: This is the default value for Azure AD. It has to be set to `login.microsoftonline.com`.
@@ -54,19 +54,17 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
 
   > Note that unless explicitly specified, you'll always use the Client/Application ID for the resources. The Object ID is used for the Role Assignment.
 
-- Azure AD Role Provisioning
+- Azure AD Role Provisioning and Function Code Deployment
 
-  - **Production**: Now you'll need to grant the Managed Identity the previously created Application Role to the Main application. To make it easier I shared below a powershell snippet which grants the identities the necessary roles:
+  Now you'll need to grant the Managed Identity the previously created Application Role to the Main application and deploy . To make it easier I shared below a powershell snippet which grants the identities the necessary roles:
 
     ```powershell
-    Connect-AzureAD
-    $appId = Get-AzureADServicePrincipal -SearchString "<Main Service Principal Name>"
-    $appRole = $AppId.AppRoles | ? {$_.DisplayName -eq "AssumeRoleWithWebIdentity"} #Adjust the Role name if you have used a different one in the previous steps
-    $client = Get-AzureADServicePrincipal -SearchString "<Managed Identity Name>"
-    
-    ## Add Role Assignment
-    New-AzureADServiceAppRoleAssignment -ObjectId $appId.ObjectId -ResourceId $appId.ObjectId -Id $appRole.Id -PrincipalId $client.ObjectId
+    .\PostDeploy.ps1 -MainAppDisplayName "MDC Shield AWS" -FunctionAppName "mdcshield<yourfunctionsuffix>"
     ```
+
+  `PostDeploy.ps1` can be executed directly from Azure Cloud Shell using currently active credentials. If you prefer, you can also execute it from your local machine, but you'll need to be logged in to Azure using `Connect-AzAccount` and have the `Az.Accounts` module installed.
+
+  > If you're interested on using a customized Function Package or just reuse the script to grant the role to other identities I recommend you to review the script arguments and adjust them accordingly. :smile:
 
 - AWS Azure AD OpenID Connect
 
@@ -132,6 +130,7 @@ In a Logic App, you can implement this by using the following steps:
 
 - [ ] Create a Custom Logic App Connector for easier usage in Logic Apps
 - [ ] Create a extensible framework for custom or advanced remediation tasks
+- [ ] Create a Bicep template for easier maintainability
 - [ ] Create a AWS Lambda function to be used as a custom connector for Logic Apps instead of Azure Function
 - [ ] Reproduce the same concept for Azure and GCP
 

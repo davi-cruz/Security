@@ -9,11 +9,14 @@ param (
     [Parameter(Mandatory = $true)]
     [string]$MainAppDisplayName,
 
-    [Parameter(Mandatory = $true)]
-    [string]$ClientAppDisplayName,
+    [Parameter(Mandatory = $false)]
+    [string]$ClientAppDisplayName = $FunctionAppName,
 
     [Parameter(Mandatory = $false)]
-    [string]$RoleName = "AssumeRoleWithWebIdentity"
+    [string]$RoleName = "AssumeRoleWithWebIdentity",
+
+    [Parameter(Mandatory = $false)]
+    [bool]$SkipFunctionDeploy = $false
 )
 
 ## Variables
@@ -116,7 +119,7 @@ catch {
 ## Publish Function App content
 $scmHeader = @{
     "Authorization" = "Bearer $($azureToken.Token)"
-    "Content-Type" = "application/json"
+    "Content-Type"  = "application/json"
 }
 
 $body = @{
@@ -133,29 +136,32 @@ catch {
     throw "Error deploying package. Please check the logs for more details."
 }
 
-## Get logs
-$logUrl = $null
 
-$latestDeploymentUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/latest"
-$latestDeployment = Invoke-RestMethod -Method Get -Uri $latestDeploymentUrl -Headers $scmHeader | Select-Object -ExpandProperty id
+if ($SkipFunctionDeploy -ne $true) {
+    ## Get logs
+    $logUrl = $null
 
-Write-Output "Deployment started. Waiting for deployment to complete..."
+    $latestDeploymentUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/latest"
+    $latestDeployment = Invoke-RestMethod -Method Get -Uri $latestDeploymentUrl -Headers $scmHeader | Select-Object -ExpandProperty id
 
-while ($true) {
-    $deploymentUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/$latestDeployment"
-    $deployment = Invoke-RestMethod -Method Get -Uri $deploymentUrl -Headers $scmHeader
+    Write-Output "Deployment started. Waiting for deployment to complete..."
 
-    if ($null -ne $deployment.end_time) {
-        break
+    while ($true) {
+        $deploymentUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/$latestDeployment"
+        $deployment = Invoke-RestMethod -Method Get -Uri $deploymentUrl -Headers $scmHeader
+
+        if ($null -ne $deployment.end_time) {
+            break
+        }
+
+        Start-Sleep -Seconds 5
     }
 
-    Start-Sleep -Seconds 5
-}
+    $logUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/$latestDeployment/log"
 
-$logUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/$latestDeployment/log"
-
-if ($logUrl) {
-    Write-Output "Deployment logs: $deploymentUrl/log"
-    $logs = Invoke-RestMethod -Method Get -Uri $logUrl -Headers $scmHeader
-    $logs | ForEach-Object { Write-Output $_.message }
+    if ($logUrl) {
+        Write-Output "Deployment logs: $deploymentUrl/log"
+        $logs = Invoke-RestMethod -Method Get -Uri $logUrl -Headers $scmHeader
+        $logs | ForEach-Object { Write-Output $_.message }
+    }
 }
