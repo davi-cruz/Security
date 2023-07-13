@@ -1,22 +1,36 @@
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory = $true)][string]$FunctionAppName,
-    [Parameter(Mandatory = $true)][string]$ResourceGroup,
-    [Parameter(Mandatory = $true)][string]$SubscriptionId,   
-    [Parameter(Mandatory = $true)][string]$MainAppDisplayName,
-    [Parameter(Mandatory = $true)][string]$ClientAppDisplayName,
-    [Parameter(Mandatory = $false)][string]$RoleName = "AssumeRoleWithWebIdentity"
+    [Parameter(Mandatory = $true)]
+    [string]$FunctionAppName,
+
+    [Parameter(Mandatory = $false)]
+    [string]$packageUrl = 'https://github.com/davi-cruz/Security/raw/main/MDC/MDC-Shield/Func_MDC-Shield-AWS.zip',
+
+    [Parameter(Mandatory = $true)]
+    [string]$MainAppDisplayName,
+
+    [Parameter(Mandatory = $true)]
+    [string]$ClientAppDisplayName,
+
+    [Parameter(Mandatory = $false)]
+    [string]$RoleName = "AssumeRoleWithWebIdentity"
 )
 
 ## Variables
-$packageUrl = 'https://github.com/davi-cruz/Security/raw/main/MDC/MDC-Shield/Func_MDC-Shield-AWS.zip'
 $graphUrl = "https://graph.microsoft.com"
+$packageLocation = Join-Path -Path $PSScriptRoot -ChildPath $(Split-Path $packageUrl -Leaf)
 
+## Functions
 function New-EntraIDAppRoleAssignment {
     param (
-        [Parameter(Mandatory = $true)][string]$mainAppId,
-        [Parameter(Mandatory = $true)][string]$clientAppId, 
-        [Parameter(Mandatory = $true)][string]$roleObjectId
+        [Parameter(Mandatory = $true)]
+        [string]$mainAppId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$clientAppId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$roleObjectId
     )
 
     $body = @{
@@ -25,110 +39,123 @@ function New-EntraIDAppRoleAssignment {
         appRoleId   = $roleObjectId
     } | ConvertTo-Json
 
-    $header = @{
-        'Authorization' = "Bearer $($token.Token)"
+    $headers = @{
+        'Authorization' = "Bearer $($msgraphToken.Token)"
         'Content-Type'  = 'application/json'
     }
 
-    Write-Verbose "HEADER: $($header | ConvertTo-Json)"
-    Write-Verbose "QUERY: $graphUrl/v1.0/servicePrincipals/$clientAppId/appRoleAssignments"
-    Write-Verbose "BODY: $body"
-
-    $results = Invoke-RestMethod -Method Post -Uri "$graphUrl/v1.0/servicePrincipals/$clientAppId/appRoleAssignments" -Headers $header -Body $body -SkipHttpErrorCheck
-    
-    if ($results.error) {
-        $response = @{
-            'status'  = $results.error.code
-            'message' = $results.error.message
-        } | ConvertTo-Json
-        return $response
+    try {
+        $results = Invoke-RestMethod -Method Post -Uri "$graphUrl/v1.0/servicePrincipals/$clientAppId/appRoleAssignments" -Headers $headers -Body $body -SkipHttpErrorCheck
+        
+        if ($results.error) {
+            $response = @{
+                'status'  = $results.error.code
+                'message' = $results.error.message
+            } | ConvertTo-Json
+            return $response
+        }
+        else {
+            return $results
+        }
     }
-    else {
-        return $results
+    catch {
+        throw "Error creating app role assignment: $($_.Exception.Message)"
     }
 }
+
 function Get-EntraIDServicePrincipal {
     param (
-        [Parameter(Mandatory = $true)][string]$appDisplayName
+        [Parameter(Mandatory = $true)]
+        [string]$appDisplayName
     )
 
-    $header = @{
-        'Authorization'    = "Bearer $($token.Token)"
+    $headers = @{
+        'Authorization'    = "Bearer $($msgraphToken.Token)"
         'Content-Type'     = 'application/json'
         'ConsistencyLevel' = 'eventual'
     }
 
     $queryString = "?`$search=`"displayName:$appDisplayName`""
-
-    Write-Verbose "URI: $graphUrl/v1.0/servicePrincipals$queryString"
-    
-    $results = Invoke-RestMethod -Method Get -Uri "$graphUrl/v1.0/servicePrincipals$queryString" -Headers $header
-    
+    $results = Invoke-RestMethod -Method Get -Uri "$graphUrl/v1.0/servicePrincipals$queryString" -Headers $headers
     
     # Get the app in case multiple apps with similar names exist
     foreach ($result in $results.value) {
         if ($result.appDisplayName -eq $appDisplayName) {
-            $app = $result
+            return $result
         }
     }
 
-    return $app
+    throw "Service principal with app display name '$appDisplayName' not found."
 }
 
-if($Verbose){
-    $VerbosePreference = "Continue"
-}
+##===============
+## Main Execution
+##===============
 
-## Set Azure Subscription Context
-try{
-    Set-AzContext -SubscriptionId $SubscriptionId
-}
-catch{
-    Write-Output "Error setting subscription"
-    Exit 1
-}
-
-## Obtain Access Token from Azure session
-$token = Get-AzAccessToken -ResourceUrl $graphUrl
-
-## Get details from resources
-$header = @{
-    'Authorization'    = "Bearer $($token.Token)"
-    'ConsistencyLevel' = 'eventual'
-    'Content-Type'     = 'application/json'
-}
-
-## Get the Main App
-$mainApp = Get-EntraIDServicePrincipal -appDisplayName $MainAppDisplayName
-$clientApp = Get-EntraIDServicePrincipal -appDisplayName $ClientAppDisplayName
-$appRole = $mainApp.AppRoles | Where-Object { $_.DisplayName -eq $RoleName }
-# Get the app in case multiple apps with similar names exist
-foreach ($result in $results.value) {
-    if ($result.displayName -eq $ClientAppDisplayName) {
-        $clientApp = $result
-    }
-}
-
-Write-Verbose "Main App Id: $($mainApp.id)"
-Write-Verbose "Client App: $($clientApp.id)"
-Write-Verbose "App Role: $($appRole.id)"
-
-New-EntraIDAppRoleAssignment -mainAppId $mainApp.id -clientAppId $clientApp.id -roleObjectId $appRole.id
-
-## Deploy the Function Package
-if($null -ne $IsLinux -and $IsLinux -eq $true){
-    $workingDir = "/tmp"
-}
-else {
-    $workingDir = $env:TEMP
-}
-
-$packageLocation = Join-Path -Path $workingDir -ChildPath "Func_MDC-Shield-AWS.zip"
-Invoke-RestMethod -Method Get -Uri $packageUrl -OutFile $packageLocation
-
+## Get Access Tokens
 try {
-    Publish-AzWebapp -ResourceGroupName $ResourceGroup -Name $FunctionAppName -ArchivePath $packageLocation
+    $msgraphToken = Get-AzAccessToken -ResourceUrl $graphUrl
+    $azureToken = Get-AzAccessToken
 }
 catch {
-    <#Do this if a terminating exception happens#>
+    throw "Error obtaining access token: $($_.Exception.Message)"
+}
+
+## Assign App Role
+try {
+    $mainApp = Get-EntraIDServicePrincipal -appDisplayName $MainAppDisplayName
+    $clientApp = Get-EntraIDServicePrincipal -appDisplayName $ClientAppDisplayName
+    $appRole = $mainApp.AppRoles | Where-Object { $_.DisplayName -eq $RoleName }
+
+    New-EntraIDAppRoleAssignment -mainAppId $mainApp.id -clientAppId $clientApp.id -roleObjectId $appRole.id
+}
+catch {
+    throw "Error while getting service principals or creating app role assignment: $($_.Exception.Message)"
+}
+
+## Publish Function App content
+$scmHeader = @{
+    "Authorization" = "Bearer $($azureToken.Token)"
+    "Content-Type" = "application/json"
+}
+
+$body = @{
+    "packageUri" = $packageUrl
+} | ConvertTo-Json
+
+try {
+    Write-Output "Starting deployment of package $packageUrl"
+    $zipDeployUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/zipdeploy?isAsync=true"
+    Invoke-RestMethod -Method 'PUT' -Uri $zipDeployUrl -Headers $scmHeader -Body $body
+    Start-Sleep -Seconds 15
+}
+catch {
+    throw "Error deploying package. Please check the logs for more details."
+}
+
+## Get logs
+$logUrl = $null
+
+$latestDeploymentUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/latest"
+$latestDeployment = Invoke-RestMethod -Method Get -Uri $latestDeploymentUrl -Headers $scmHeader | Select-Object -ExpandProperty id
+
+Write-Output "Deployment started. Waiting for deployment to complete..."
+
+while ($true) {
+    $deploymentUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/$latestDeployment"
+    $deployment = Invoke-RestMethod -Method Get -Uri $deploymentUrl -Headers $scmHeader
+
+    if ($null -ne $deployment.end_time) {
+        break
+    }
+
+    Start-Sleep -Seconds 5
+}
+
+$logUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/$latestDeployment/log"
+
+if ($logUrl) {
+    Write-Output "Deployment logs: $deploymentUrl/log"
+    $logs = Invoke-RestMethod -Method Get -Uri $logUrl -Headers $scmHeader
+    $logs | ForEach-Object { Write-Output $_.message }
 }
