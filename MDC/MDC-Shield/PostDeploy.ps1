@@ -21,7 +21,6 @@ param (
 
 ## Variables
 $graphUrl = "https://graph.microsoft.com"
-$packageLocation = Join-Path -Path $PSScriptRoot -ChildPath $(Split-Path $packageUrl -Leaf)
 
 ## Functions
 function New-EntraIDAppRoleAssignment {
