@@ -30,7 +30,7 @@ resource webjobsHosts 'Microsoft.Storage/storageAccounts/blobServices/containers
   dependsOn: [
     storageAccount
   ]
-  properties:{
+  properties: {
     publicAccess: 'None'
   }
 }
@@ -41,7 +41,7 @@ resource webjobsSecrets 'Microsoft.Storage/storageAccounts/blobServices/containe
     storageAccount
     webjobsHosts
   ]
-  properties:{
+  properties: {
     publicAccess: 'None'
   }
 }
@@ -59,11 +59,11 @@ resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   }
 }
 
-resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
+resource functionApp 'Microsoft.Web/sites@2015-08-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp,linux'
-  dependsOn:[
+  dependsOn: [
     webjobsHosts
     webjobsSecrets
   ]
@@ -105,7 +105,7 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
         }
         {
           name: 'AZURE_AUTHORITY_HOST'
-          value: replace(replace(environment().authentication.loginEndpoint,'https:',''),'/','')
+          value: replace(replace(environment().authentication.loginEndpoint, 'https:', ''), '/', '')
         }
         {
           name: 'AZURE_MSI_AUDIENCE'

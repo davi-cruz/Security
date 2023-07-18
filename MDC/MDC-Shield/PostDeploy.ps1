@@ -16,7 +16,7 @@ param (
     [string]$RoleName = "AssumeRoleWithWebIdentity",
 
     [Parameter(Mandatory = $false)]
-    [bool]$SkipFunctionDeploy = $false
+    [switch]$SkipFunctionDeploy = $false
 )
 
 ## Variables
@@ -78,11 +78,12 @@ function Get-EntraIDServicePrincipal {
     }
 
     $queryString = "?`$search=`"displayName:$appDisplayName`""
+    
     $results = Invoke-RestMethod -Method Get -Uri "$graphUrl/v1.0/servicePrincipals$queryString" -Headers $headers
     
     # Get the app in case multiple apps with similar names exist
     foreach ($result in $results.value) {
-        if ($result.appDisplayName -eq $appDisplayName) {
+        if ($result.displayName -eq $appDisplayName) {
             return $result
         }
     }

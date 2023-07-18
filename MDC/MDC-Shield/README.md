@@ -49,22 +49,20 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
     [![Deploy to Azure](images/deploytoazure.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw%2Egithubusercontent%2Ecom%2Fdavi%2Dcruz%2FSecurity%2Fmain%2FMDC%2FMDC%2DShield%2Fazuredeployaws%2Ejson)
 
   - During Function deployment (or manually if you used other methods) you'll need to fill in the following information:
-    - **AZURE_AUTHORITY_HOST**: This is the default value for Azure AD. It has to be set to `login.microsoftonline.com`.
+    - **Function Name**: This will be the prefix value for all function resources. The suggestion is MDCShield.
     - **AZURE_MSI_AUDIENCE**: This is where you'll specify the Main App Registration URI. It can be obtained from the Azure Portal or Microsoft Entra portal and has to end with `/.default` as the following example: `urn://mdc_shield_aws/.default`.
-
-  > Note that unless explicitly specified, you'll always use the Client/Application ID for the resources. The Object ID is used for the Role Assignment.
 
 - Azure AD Role Provisioning and Function Code Deployment
 
-  Now you'll need to grant the Managed Identity the previously created Application Role to the Main application and deploy . To make it easier I shared below a powershell snippet which grants the identities the necessary roles:
+  Now you'll need to grant the Managed Identity the previously created Application Role to the Main application and deploy function code.
+  
+  To make it easier I've created a powershell snippet which grants the identities the necessary roles and can be executed from Azure Cloud Shell using the currently logged in account.
 
     ```powershell
     .\PostDeploy.ps1 -MainAppDisplayName "MDC Shield AWS" -FunctionAppName "mdcshield<yourfunctionsuffix>"
     ```
 
-  `PostDeploy.ps1` can be executed directly from Azure Cloud Shell using currently active credentials. If you prefer, you can also execute it from your local machine, but you'll need to be logged in to Azure using `Connect-AzAccount` and have the `Az.Accounts` module installed.
-
-  > If you're interested on using a customized Function Package or just reuse the script to grant the role to other identities I recommend you to review the script arguments and adjust them accordingly. :smile:
+  If you prefer, you can also execute `PostDeploy.ps1` from your local machine, but you'll need to be logged in to Azure using `Connect-AzAccount` and have the `Az.Accounts` module installed.
 
 - AWS Azure AD OpenID Connect
 
