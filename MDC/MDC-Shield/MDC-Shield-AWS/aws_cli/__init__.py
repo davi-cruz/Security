@@ -20,6 +20,7 @@ import awscli.clidriver
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+
 def execute_aws_cli(cmd):
     output_stream = io.StringIO()
     sys.stdout = output_stream
@@ -33,18 +34,19 @@ def execute_aws_cli(cmd):
         error_message = f"SystemExit: {se.code}"
         if se.__context__ is not None:
             error_message = f"{error_message}\n{se.__context__}"
-        
+
         return {"content": error_message}
     except Exception as e:
         return {"content": f"Error: {str(e)}"}
 
     return {"content": output_content}
 
+
 def authenticate_to_aws(aws_role_arn, aws_session_name, aws_region, token):
     home_dir = os.environ['HOME']
     if not os.path.exists(os.path.join(home_dir, ".aws")):
         os.makedirs(os.path.join(home_dir, ".aws"))
-    
+
     config_file_path = os.path.join(home_dir, ".aws", "config")
 
     with open(config_file_path, "w") as config_file:
@@ -72,9 +74,13 @@ def authenticate_to_aws(aws_role_arn, aws_session_name, aws_region, token):
 
     with open(credentials_file_path, "w") as credentials_file:
         credentials_file.write("[default]\n")
-        credentials_file.write(f"aws_access_key_id = {sso_output['Credentials']['AccessKeyId']}\n")
-        credentials_file.write(f"aws_secret_access_key = {sso_output['Credentials']['SecretAccessKey']}\n")
-        credentials_file.write(f"aws_session_token = {sso_output['Credentials']['SessionToken']}\n")
+        credentials_file.write(
+            f"aws_access_key_id = {sso_output['Credentials']['AccessKeyId']}\n")
+        credentials_file.write(
+            f"aws_secret_access_key = {sso_output['Credentials']['SecretAccessKey']}\n")
+        credentials_file.write(
+            f"aws_session_token = {sso_output['Credentials']['SessionToken']}\n")
+
 
 def validate_input(req_body):
     required_params = ['aws_role_arn', 'aws_session_name', 'aws_region', 'cmd']
@@ -82,6 +88,7 @@ def validate_input(req_body):
         if not req_body.get(param):
             return False
     return True
+
 
 def process_request(req_body):
     aws_role_arn = req_body['aws_role_arn']
@@ -97,18 +104,18 @@ def process_request(req_body):
 
     return output
 
+
 def get_azure_token():
     audience = os.environ['AZURE_MSI_AUDIENCE']
-    msi_credential = ManagedIdentityCredential() ## Modify this if you're using a User-assigned Managed Identity
-    ec_credential = EnvironmentCredential() ## For development purposes only
+    # Modify this if you're using a User-assigned Managed Identity
+    msi_credential = ManagedIdentityCredential()
+    ec_credential = EnvironmentCredential()  # For development purposes only
     chained_credential = ChainedTokenCredential(msi_credential, ec_credential)
     token = chained_credential.get_token(audience).token
     return token
 
-app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-@app.route(route="mdc_shield_aws_cli")
-def mdc_shield_aws_cli(req: func.HttpRequest) -> func.HttpResponse:
+def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
     req_body = req.get_json()
