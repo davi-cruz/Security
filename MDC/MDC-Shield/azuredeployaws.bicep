@@ -1,55 +1,68 @@
-@description('The name of the function app that you wish to create.')
-param appName string = 'fnmdcshield${uniqueString(resourceGroup().id)}'
-
-@description('Microsoft Entra ID App URI/URN.')
-param AZURE_MSI_AUDIENCE string = 'urn://mdc_shield_aws/.default'
+@description('The name of the Azure Function app.')
+param functionAppName string = 'func-${uniqueString(resourceGroup().id)}'
 
 @description('Location for all resources.')
 param location string = resourceGroup().location
 
-var functionAppName = appName
-var hostingPlanName = 'ASP-${appName}'
-var applicationInsightsName = appName
-var storageAccountName = substring(toLower(appName), 0, 24)
+@description('Microsoft Entra ID App URI/URN.')
+param AZURE_MSI_AUDIENCE string = 'urn://mdc_shield_aws/.default'
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
+@description('The zip content url.')
+param packageUri string = 'https://github.com/davi-cruz/Security/raw/main/MDC/MDC-Shield/Func_MDC-Shield-AWS.zip'
+
+var hostingPlanName = functionAppName
+var applicationInsightsName = functionAppName
+var storageAccountName = 'azfunctions${uniqueString(resourceGroup().id)}'
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: storageAccountName
   location: location
-  kind: 'StorageV2'
   sku: {
     name: 'Standard_LRS'
   }
+  kind: 'Storage'
 }
 
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: applicationInsightsName
-  location: location
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-    Request_Source: 'rest'
-  }
-}
-
-resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
+resource hostingPlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: hostingPlanName
   location: location
-  kind: 'linux'
   sku: {
     name: 'Y1'
     tier: 'Dynamic'
+    size: 'Y1'
+    family: 'Y'
+  }
+  properties: {
+    reserved: true
   }
 }
 
-resource webApp 'Microsoft.Web/sites@2020-06-01' = {
+resource applicationInsight 'Microsoft.Insights/components@2020-02-02' = {
+  name: applicationInsightsName
+  location: location
+  tags: {
+    'hidden-link:${resourceId('Microsoft.Web/sites', functionAppName)}': 'Resource'
+  }
+  properties: {
+    Application_Type: 'web'
+  }
+  kind: 'web'
+}
+
+resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
   name: functionAppName
   location: location
-  kind: 'linux'
+  kind: 'functionapp,linux'
   properties: {
-    serverFarmId: appServicePlan.id
+    reserved: true
+    serverFarmId: hostingPlan.id
     siteConfig: {
       linuxFxVersion: 'Python|3.10'
       appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: reference(resourceId('Microsoft.Insights/components', functionAppName), '2020-02-02').InstrumentationKey
+        }
         {
           name: 'AzureWebJobsStorage'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
@@ -67,25 +80,21 @@ resource webApp 'Microsoft.Web/sites@2020-06-01' = {
           value: '~4'
         }
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: applicationInsights.properties.InstrumentationKey
-        }
-        {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: 'python'
         }
         {
-          name: 'AZURE_AUTHORITY_HOST'
-          value: replace(replace(environment().authentication.loginEndpoint, 'https:', ''), '/', '')
+          name: 'WEBSITE_RUN_FROM_PACKAGE'
+          value: packageUri
         }
         {
           name: 'AZURE_MSI_AUDIENCE'
           value: AZURE_MSI_AUDIENCE
         }
       ]
-      ftpsState: 'FtpsOnly'
-      minTlsVersion: '1.2'
     }
-    httpsOnly: true
   }
+  dependsOn: [
+    applicationInsight
+  ]
 }
