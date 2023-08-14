@@ -121,6 +121,6 @@ bash ./setup-kubernetes-goat.sh
 
 Now you're ready to start all scenarios from [the project website](https://madhuakula.com/kubernetes-goat/docs/scenarios/) :smile:
 
-Note that there are some scenarios in this project which abuses of Node Ports and Docker Daemon, which won't work for AKS and other Cloud Managed K8s clusters.
+Note that there are some scenarios in this project that won't work for AKS and other Cloud Managed K8s clusters as they usually run `containerd` instead of `docker` daemon and Service nodes are exposed using LoadBalancers instead of NodePorts.
 
-Also keep in mind that Defender for Cloud separates detections in CSPM as Recommendations, while Defender for Containers detections are shown as Alerts. So you'll need to check both places to see all detections triggered by Kubernetes Goat.
+Also keep in mind that Defender for Cloud classifies detections in CSPM as Recommendations, while Defender for Containers (CWPP) detections are shown as Alerts. Depending on the scenario Kubernetes Goat may trigger both types of events.
