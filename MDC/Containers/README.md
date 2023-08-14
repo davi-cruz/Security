@@ -89,16 +89,20 @@ find ./scenarios -type f -name '*.yaml' -exec sed -i "s/image: madhuakula/image:
 - Also, as AKS uses `containerd` instead of `docker` daemon, we have to fix `./scenarios/health-check/deployment.yaml` to mound a different sensitive directory (well use `/var` as it contains sensitive information in `/var/logs`)
 
 ```diff
+diff --git a/scenarios/health-check/deployment.yaml b/scenarios/health-check/deployment.yaml
+--- a/scenarios/health-check/deployment.yaml
++++ b/scenarios/health-check/deployment.yaml
+@@ -24,13 +24,13 @@ spec:
          securityContext:
            privileged: true
          volumeMounts:
 -          - mountPath: /custom/docker/docker.sock
 -            name: docker-sock-volume
 +          - mountPath: /var
-+            name: logs
++            name: Logs
        volumes:
 -        - name: docker-sock-volume
-+        - name: logs
++        - name: Logs
            hostPath:
 -            path: /var/run/docker.sock
 -            type: Socket
