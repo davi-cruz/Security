@@ -3,9 +3,6 @@ param (
     [Parameter(Mandatory = $true)]
     [string]$FunctionAppName,
 
-    [Parameter(Mandatory = $false)]
-    [string]$packageUrl = 'https://github.com/davi-cruz/Security/raw/main/MDC/MDC-Shield/Func_MDC-Shield-AWS.zip',
-
     [Parameter(Mandatory = $true)]
     [string]$MainAppDisplayName,
 
@@ -13,10 +10,7 @@ param (
     [string]$ClientAppDisplayName = $FunctionAppName,
 
     [Parameter(Mandatory = $false)]
-    [string]$RoleName = "AssumeRoleWithWebIdentity",
-
-    [Parameter(Mandatory = $false)]
-    [switch]$SkipFunctionDeploy = $false
+    [string]$RoleName = "AssumeRoleWithWebIdentity"
 )
 
 ## Variables
@@ -98,7 +92,6 @@ function Get-EntraIDServicePrincipal {
 ## Get Access Tokens
 try {
     $msgraphToken = Get-AzAccessToken -ResourceUrl $graphUrl
-    $azureToken = Get-AzAccessToken
 }
 catch {
     throw "Error obtaining access token: $($_.Exception.Message)"
@@ -114,54 +107,4 @@ try {
 }
 catch {
     throw "Error while getting service principals or creating app role assignment: $($_.Exception.Message)"
-}
-
-## Publish Function App content
-$scmHeader = @{
-    "Authorization" = "Bearer $($azureToken.Token)"
-    "Content-Type"  = "application/json"
-}
-
-$body = @{
-    "packageUri" = $packageUrl
-} | ConvertTo-Json
-
-try {
-    Write-Output "Starting deployment of package $packageUrl"
-    $zipDeployUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/zipdeploy?isAsync=true"
-    Invoke-RestMethod -Method 'PUT' -Uri $zipDeployUrl -Headers $scmHeader -Body $body
-    Start-Sleep -Seconds 15
-}
-catch {
-    throw "Error deploying package. Please check the logs for more details."
-}
-
-
-if ($SkipFunctionDeploy -ne $true) {
-    ## Get logs
-    $logUrl = $null
-
-    $latestDeploymentUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/latest"
-    $latestDeployment = Invoke-RestMethod -Method Get -Uri $latestDeploymentUrl -Headers $scmHeader | Select-Object -ExpandProperty id
-
-    Write-Output "Deployment started. Waiting for deployment to complete..."
-
-    while ($true) {
-        $deploymentUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/$latestDeployment"
-        $deployment = Invoke-RestMethod -Method Get -Uri $deploymentUrl -Headers $scmHeader
-
-        if ($null -ne $deployment.end_time) {
-            break
-        }
-
-        Start-Sleep -Seconds 5
-    }
-
-    $logUrl = "https://$FunctionAppName.scm.azurewebsites.net/api/deployments/$latestDeployment/log"
-
-    if ($logUrl) {
-        Write-Output "Deployment logs: $deploymentUrl/log"
-        $logs = Invoke-RestMethod -Method Get -Uri $logUrl -Headers $scmHeader
-        $logs | ForEach-Object { Write-Output $_.message }
-    }
 }

@@ -20,8 +20,8 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
 
 ### Prerequisites
 
-1. Azure Subscription with the required permissions to create an Azure Function and Logic Apps for remediation tasks. It should resides in the same Azure AD Tenant as your Microsoft Defender for Cloud instance.
-2. AWS Account with the required permissions to create IAM Roles and Policies.Additional IAM Roles and Policies may need to be created depending on the remediation tasks you plan to use to properly restrict access to the required resources.
+1. Azure Subscription with the required permissions to create an Azure Function and Logic Apps for remediation tasks. It should resides in the same Microsoft Entra Tenant as your Microsoft Defender for Cloud instance.
+2. AWS Account with the required permissions to create IAM Roles and Policies. Additional IAM Roles and Policies may need to be created depending on the remediation tasks you plan to use to properly restrict access to the required resources.
 
 ### Deployment
 
@@ -44,22 +44,47 @@ This diagram was inspired on René Bremer post in Medium about [How to Connect A
 
 - Azure Function Deployment
 
-  - The Function can be deployed using the button below. Alternatively, you can use the folder `MDC-Shield-AWS` in this repository to adjust it and deploy directly from VSCode or your preferred IDE directly to Azure.
+  - The Function can be deployed using the `main.bicep` template provided in this repo. You can deploy it by running the provided commands below using Azure CLI or through you preferred method.
 
-    [![Deploy to Azure](images/deploytoazure.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw%2Egithubusercontent%2Ecom%2Fdavi%2Dcruz%2FSecurity%2Fmain%2FMDC%2FMDC%2DShield%2Fazuredeployaws%2Ejson)
-
-  - During Function deployment (or manually if you used other methods) you'll need to fill in the following information:
-    - **Function Name**: This will be the prefix value for all function resources. The suggestion is MDCShield.
-    - **AZURE_MSI_AUDIENCE**: This is where you'll specify the Main App Registration URI. It can be obtained from the Azure Portal or Microsoft Entra portal and has to end with `/.default` as the following example: `urn://mdc_shield_aws/.default`.
-
-- Azure AD Role Provisioning and Function Code Deployment
-
-  Now you'll need to grant the Managed Identity the previously created Application Role to the Main application and deploy function code.
+  ```bash
+  rgName="MyResourceGroup"
+  resourceName="MyResourceName"
+  subscriptionName="MySubscriptionName"
+  location="eastus"
   
-  To make it easier I've created a powershell snippet which grants the identities the necessary roles and can be executed from Azure Cloud Shell using the currently logged in account.
+  az login
+  az account set --subscription $subscriptionName
+  
+  # Creates Azure Resource Group
+  az group create --name $rgName --location $location
+  
+  #Modify the preferences below according to your 
+  parameters=$(cat <<EOF
+  {
+      "functionAppName": "fn-mdc-shield123456",
+      "AZURE_MSI_AUDIENCE": "urn://mdc_shield_aws/.default",
+      "packageUri": "'https://github.com/davi-cruz/Security/raw/main/MDC/MDC-Shield/Func_MDC-Shield-AWS.zip"
+  }
+  EOF
+  )
+  
+  az deployment group create --resource-group $rgName --template-file <path-to-bicep> --parameters $parameters
+  ```
+
+  - During Function deployment (or manually if you used other methods) you'll [need]() to fill in the following information:
+    - **Function Name**: This will be the prefix value for all function resources. This value should be unique.
+    - **AZURE_MSI_AUDIENCE**: This is where you'll specify the Main App Registration URI. It can be obtained from the Azure Portal or Microsoft Entra portal and has to end with `/.default` as the following example: `urn://mdc_shield_aws/.default`.
+    - **Package URI**: Contents of this function for deployment. Unless you modify it with your own code, the location in this repository is recommended.
+
+- Microsoft Entra ID Role Provisioning and Function Code Deployment:
+
+  - Now you'll need to grant the Managed Identity the previously created Application Role to the Main application and deploy function code.
+
+  - To make it easier I've created a PowerShell snippet which grants the identities the necessary roles and can be executed from Azure Cloud Shell using the currently logged in account.
+
 
     ```powershell
-    .\PostDeploy.ps1 -MainAppDisplayName "MDC Shield AWS" -FunctionAppName "mdcshield<yourfunctionsuffix>"
+    .\PostDeploy.ps1 -MainAppDisplayName "MDC Shield AWS" -FunctionAppName "<yourfunctionname>"
     ```
 
   If you prefer, you can also execute `PostDeploy.ps1` from your local machine, but you'll need to be logged in to Azure using `Connect-AzAccount` and have the `Az.Accounts` module installed.
@@ -128,7 +153,7 @@ In a Logic App, you can implement this by using the following steps:
 
 - [ ] Create a Custom Logic App Connector for easier usage in Logic Apps
 - [ ] Create a extensible framework for custom or advanced remediation tasks
-- [ ] Create a Bicep template for easier maintainability
+- [x] Create a Bicep template for easier maintainability
 - [ ] Create a AWS Lambda function to be used as a custom connector for Logic Apps instead of Azure Function
 - [ ] Reproduce the same concept for Azure and GCP
 
