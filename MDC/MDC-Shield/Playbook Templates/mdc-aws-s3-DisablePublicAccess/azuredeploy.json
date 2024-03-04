@@ -1,0 +1,184 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+        "title": "",
+        "description": "",
+        "prerequisites": "",
+        "postDeployment": [],
+        "prerequisitesDeployTemplateFile": "",
+        "lastUpdateTime": "",
+        "entities": [],
+        "tags": [],
+        "support": {
+            "tier": "community",
+            "armtemplate": "Generated from https://github.com/Azure/Azure-Sentinel/tree/master/Tools/Playbook-ARM-Template-Generator"
+        },
+        "author": {
+            "name": ""
+        }
+    },
+    "parameters": {
+        "PlaybookName": {
+            "defaultValue": "mdc-aws-s3-DisablePublicAccess",
+            "type": "string"
+        },
+        "FunctionId": {
+            "defaultValue": "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/myMDCShieldRg/providers/Microsoft.Web/sites/mdcshield-func-name/functions/aws_cli",
+            "type": "string"
+        }
+
+    },
+    "variables": {
+        "AscassessmentConnectionName": "[concat('Ascassessment-', parameters('PlaybookName'))]"
+    },
+    "resources": [
+        {
+            "properties": {
+                "provisioningState": "Succeeded",
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_Microsoft_Defender_for_Cloud_recommendation_is_created_or_triggered": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['ascassessment']['connectionId']"
+                                    }
+                                },
+                                "path": "/Microsoft.Security/Assessment/subscribe"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Disable_Public_Access": {
+                            "runAfter": {
+                                "Initialize_aws_s3_bucket": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Function",
+                            "inputs": {
+                                "body": {
+                                    "aws_region": "@{variables('aws_region')}",
+                                    "aws_role_arn": "@{variables('aws_role_arn')}",
+                                    "aws_session_name": "MDCShield",
+                                    "cmd": [
+                                        "s3api",
+                                        "put-public-access-block",
+                                        "--bucket",
+                                        "@{variables('aws_s3_bucket')}",
+                                        "--public-access-block-configuration",
+                                        "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+                                    ]
+                                },
+                                "function": {
+                                    "id": "[parameters('FunctionId')]"
+                                }
+                            }
+                        },
+                        "Initialize_aws_region": {
+                            "runAfter": {
+                                "Initialize_aws_role_arn": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "aws_region",
+                                        "type": "string",
+                                        "value": "us-east-2"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_aws_role_arn": {
+                            "runAfter": {},
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "aws_role_arn",
+                                        "type": "string",
+                                        "value": "arn:aws:iam::006274001514:role/MDC-Shield-Role"
+                                    }
+                                ]
+                            }
+                        },
+                        "Initialize_aws_s3_bucket": {
+                            "runAfter": {
+                                "Initialize_aws_region": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "aws_s3_bucket",
+                                        "type": "string",
+                                        "value": "@{substring(last(split(triggerBody()?['properties']?['resourceDetails']?['id'],'/')), 7)}"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "ascassessment": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('AscassessmentConnectionName'))]",
+                                "connectionName": "[variables('AscassessmentConnectionName')]",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Ascassessment')]"
+                            }
+                        }
+                    }
+                }
+            },
+            "name": "[parameters('PlaybookName')]",
+            "type": "Microsoft.Logic/workflows",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "hidden-SentinelTemplateName": "mdc-aws-s3-DisablePublicAccess",
+                "hidden-SentinelTemplateVersion": "1.0"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "apiVersion": "2017-07-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', variables('AscassessmentConnectionName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "name": "[variables('AscassessmentConnectionName')]",
+            "location": "[resourceGroup().location]",
+            "kind": "V1",
+            "properties": {
+                "displayName": "[variables('AscassessmentConnectionName')]",
+                "customParameterValues": {},
+                "api": {
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/Ascassessment')]"
+                }
+            }
+        }
+    ]
+}

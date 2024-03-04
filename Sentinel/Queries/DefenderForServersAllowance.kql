@@ -1,0 +1,48 @@
+// Total GB/mes e média diária de ingestao de dados gratuitos
+let pricePerGB = 4;
+union withsource= tt *
+| where TimeGenerated >= ago(30d)
+| where _IsBillable == false
+| summarize DailyGB = sum(_BilledSize)/1024/1024/1024 by tt, bin(TimeGenerated, 1d)
+| summarize DailyAvgGB = avg(DailyGB), Total= sum(DailyGB) by tt
+| extend EstimatedCost = Total*pricePerGB
+
+// Total Allowance (GB) conforme assinaturas com DFS P2 ativo
+let dfsP2enabledSubscriptions = materialize(arg("").SecurityResources
+| where ['type'] == "microsoft.security/pricings"
+    and name == "VirtualMachines"
+| where properties.['pricingTier'] == "Standard" and properties.['subPlan'] == "P2"
+| project subscriptionId);
+let dfsP2EligibleResources = materialize(arg("").Resources
+| where ['type'] in ("microsoft.compute/virtualmachines","microsoft.hybridcompute/machines"));
+dfsP2EligibleResources
+| where subscriptionId in (dfsP2enabledSubscriptions)
+| count
+| extend DailyAllowanceGB = Count*500/1024
+| project DailyAllowanceGB
+
+// Volume de ingestão diária média e total/mes tabelas elegíiveis
+let dfsAllowanceTables = dynamic(["SecurityAlert", "SecurityBaseline", "SecurityBaselineSummary", "SecurityDetection", "SecurityEvent", "WindowsFirewall", "SysmonEvent", "ProtectionStatus", "Update", "UpdateSummary"]);
+union withsource= tt *
+| where TimeGenerated >= ago(30d)
+| where tt in (dfsAllowanceTables)
+| summarize DailyGB = sum(_BilledSize)/1024/1024/1024 by tt, bin(TimeGenerated, 1d)
+| summarize DailyAvgGB = avg(DailyGB), Total= sum(DailyGB) by tt
+
+// 
+union withsource = tt * 
+| where TimeGenerated >= ago(30d)
+| summarize
+    BillableGB = round(sumif(_BilledSize, _IsBillable == "True") / 1024 / 1024 / 1024, 2), 
+    NotBillableGB = round(sumif(_BilledSize, _IsBillable == "False") / 1024 / 1024 / 1024, 2)
+    by Day = bin(startofday(TimeGenerated), 1d)
+
+// Average ingestion
+union withsource = tt * 
+| where TimeGenerated >= ago(30d)
+| summarize
+    BillableGB = sumif(_BilledSize, _IsBillable == "True") / 1024 / 1024 / 1024, 
+    NotBillableGB = sumif(_BilledSize, _IsBillable == "False") / 1024 / 1024 / 1024
+    by Day = bin(startofday(TimeGenerated), 1d)
+| summarize AvgBillableGB = round(avg(BillableGB), 2), AvgNotBillableGB = round(avg(NotBillableGB), 2),
+    TotalBillableGB = round(sum(BillableGB),2), TotalNotBillableGB = round(sum(NotBillableGB),2)
